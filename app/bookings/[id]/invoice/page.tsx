@@ -26,12 +26,14 @@ function InvoiceContent() {
       setBooking(bookingData);
 
       if (bookingData) {
-        const { data: tenantData } = await supabase
-          .from('tenants')
-          .select('*')
-          .eq('id', bookingData.tenant_id)
-          .single();
-        setTenant(tenantData);
+        if (bookingData.tenant_id) {
+          const { data: tenantData } = await supabase
+            .from('tenants')
+            .select('*')
+            .eq('id', bookingData.tenant_id)
+            .single();
+          setTenant(tenantData);
+        }
 
         const { data: carData } = await supabase
           .from('cars')
@@ -68,7 +70,7 @@ function InvoiceContent() {
       <div className="max-w-2xl mx-auto bg-gray-800 border border-gray-700 rounded-2xl p-8 space-y-6">
         <div className="flex justify-between border-b border-gray-700 pb-4">
           <div>
-            <h1 className="text-xl font-bold text-blue-400">{tenant?.business_name || 'Car Rental'}</h1>
+            <h1 className="text-xl font-bold text-blue-400">{tenant?.business_name || 'Royal Rent A Car'}</h1>
             <p className="text-xs text-gray-400">Rental Invoice / Receipt</p>
           </div>
           <div className="text-right">
@@ -81,8 +83,8 @@ function InvoiceContent() {
           <p><span className="text-gray-400">Customer Name:</span> {booking.customer_name}</p>
           <p><span className="text-gray-400">Phone:</span> {booking.customer_phone}</p>
           <p><span className="text-gray-400">CNIC:</span> {booking.customer_cnic || 'Not Provided'}</p>
-          <p><span className="text-gray-400">Vehicle:</span> {car?.name} ({car?.registration_number})</p>
-          <p><span className="text-gray-400">Period:</span> {booking.start_date} to {booking.end_date}</p>
+          <p><span className="text-gray-400">Vehicle:</span> {car?.name} ({car?.registration_no || car?.model})</p>
+          <p><span className="text-gray-400">Period:</span> {booking.start_date?.replace('T', ' ')} to {booking.end_date?.replace('T', ' ')}</p>
         </div>
 
         <div className="border-t border-gray-700 pt-4 flex justify-between items-center">
