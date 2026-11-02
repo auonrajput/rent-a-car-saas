@@ -39,7 +39,7 @@ export async function POST(req: Request) {
         tenantId: tenantId || '',
         planName: planName || 'Pro',
       },
-    });
+    } as any);
 
     return NextResponse.json({ url: session.url });
   } catch (error: any) {
