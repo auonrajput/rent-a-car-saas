@@ -8,6 +8,7 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
 
+  // Login ya Signup page par navbar hide rahega
   if (pathname === '/login' || pathname === '/signup') return null;
 
   return (
@@ -21,7 +22,7 @@ export default function Navbar() {
           </span>
         </Link>
 
-        {/* Desktop Menu */}
+        {/* Desktop Links */}
         <nav className="hidden xl:flex items-center gap-4 text-sm font-medium">
           <Link href="/" className="hover:text-blue-400 transition-colors">Dashboard</Link>
           <Link href="/cars" className="hover:text-blue-400 transition-colors">Cars</Link>
@@ -32,10 +33,10 @@ export default function Navbar() {
           <Link href="/settings" className="hover:text-blue-400 transition-colors">Settings</Link>
         </nav>
 
-        {/* Hamburger Toggle Button */}
+        {/* Hamburger Toggle Button (Har screen par available) */}
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="xl:hidden p-2 rounded-lg bg-slate-800 text-slate-200 hover:bg-slate-700 border border-slate-700 focus:outline-none cursor-pointer"
+          className="p-2 rounded-lg bg-slate-800 text-slate-200 hover:bg-slate-700 border border-slate-700 focus:outline-none cursor-pointer"
           aria-label="Toggle Menu"
         >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -48,9 +49,9 @@ export default function Navbar() {
         </button>
       </div>
 
-      {/* Mobile Menu Dropdown */}
+      {/* Dropdown Menu - Saare pages yahan honge */}
       {isOpen && (
-        <div className="xl:hidden bg-slate-900 border-t border-slate-800 px-4 py-3 space-y-1.5 text-sm font-medium">
+        <div className="bg-slate-900 border-t border-slate-800 px-4 py-3 space-y-1.5 text-sm font-medium shadow-2xl">
           <Link href="/" onClick={() => setIsOpen(false)} className="block py-2 px-3 hover:bg-slate-800 rounded-md">📊 Dashboard</Link>
           <Link href="/cars" onClick={() => setIsOpen(false)} className="block py-2 px-3 hover:bg-slate-800 rounded-md">🚗 Cars Inventory</Link>
           <Link href="/bookings" onClick={() => setIsOpen(false)} className="block py-2 px-3 hover:bg-slate-800 rounded-md">📜 Bookings & Fleet</Link>
