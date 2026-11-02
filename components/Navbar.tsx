@@ -11,20 +11,18 @@ export default function Navbar() {
   if (pathname === '/login' || pathname === '/signup') return null;
 
   return (
-    <nav className="w-full bg-slate-900 border-b border-slate-800 text-white px-4 py-3 sticky top-0 z-50 shadow-lg">
-      <div className="max-w-7xl mx-auto flex justify-between items-center">
-        {/* Brand Title */}
-        <div className="flex items-center gap-2">
-          <Link href="/" className="text-lg font-bold text-blue-400 tracking-wide">
-            Rent-a-Car SaaS
-          </Link>
-          <span className="text-[10px] bg-blue-900/80 text-blue-300 px-2 py-0.5 rounded border border-blue-700 uppercase font-semibold hidden sm:inline-block">
+    <header className="w-full bg-slate-900 border-b border-slate-800 text-white sticky top-0 z-50 shadow-xl">
+      <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+        {/* Brand Logo */}
+        <Link href="/" className="text-base sm:text-lg font-bold text-blue-400 tracking-wide flex items-center gap-2">
+          <span>Rent-a-Car SaaS</span>
+          <span className="text-[10px] bg-blue-900 text-blue-300 px-2 py-0.5 rounded border border-blue-700 uppercase font-semibold">
             Owner
           </span>
-        </div>
+        </Link>
 
-        {/* Desktop Links - All Core Pages Included */}
-        <div className="hidden lg:flex items-center gap-5 text-sm font-medium">
+        {/* Desktop Menu */}
+        <nav className="hidden xl:flex items-center gap-4 text-sm font-medium">
           <Link href="/" className="hover:text-blue-400 transition-colors">Dashboard</Link>
           <Link href="/cars" className="hover:text-blue-400 transition-colors">Cars</Link>
           <Link href="/bookings" className="hover:text-blue-400 transition-colors">Bookings</Link>
@@ -32,13 +30,13 @@ export default function Navbar() {
           <Link href="/maintenance" className="hover:text-blue-400 transition-colors">Maintenance</Link>
           <Link href="/subscription" className="hover:text-blue-400 transition-colors">Plans</Link>
           <Link href="/settings" className="hover:text-blue-400 transition-colors">Settings</Link>
-        </div>
+        </nav>
 
-        {/* Mobile / Tablet Hamburger Button */}
+        {/* Hamburger Toggle Button */}
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="p-2 rounded-lg bg-slate-800 text-slate-200 hover:bg-slate-700 focus:outline-none border border-slate-700 shadow cursor-pointer"
-          aria-label="Toggle navigation menu"
+          className="xl:hidden p-2 rounded-lg bg-slate-800 text-slate-200 hover:bg-slate-700 border border-slate-700 focus:outline-none cursor-pointer"
+          aria-label="Toggle Menu"
         >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             {isOpen ? (
@@ -50,60 +48,18 @@ export default function Navbar() {
         </button>
       </div>
 
-      {/* Mobile & Tablet Dropdown Menu with All Pages */}
+      {/* Mobile Menu Dropdown */}
       {isOpen && (
-        <div className="mt-3 pt-3 border-t border-slate-800 flex flex-col gap-1.5 text-sm font-medium bg-slate-900 pb-2">
-          <Link
-            href="/"
-            onClick={() => setIsOpen(false)}
-            className="py-2 px-3 hover:bg-slate-800 rounded-md transition-colors flex items-center gap-2.5"
-          >
-            📊 Dashboard
-          </Link>
-          <Link
-            href="/cars"
-            onClick={() => setIsOpen(false)}
-            className="py-2 px-3 hover:bg-slate-800 rounded-md transition-colors flex items-center gap-2.5"
-          >
-            🚗 Cars Inventory
-          </Link>
-          <Link
-            href="/bookings"
-            onClick={() => setIsOpen(false)}
-            className="py-2 px-3 hover:bg-slate-800 rounded-md transition-colors flex items-center gap-2.5"
-          >
-            📜 Bookings & Fleet
-          </Link>
-          <Link
-            href="/customers"
-            onClick={() => setIsOpen(false)}
-            className="py-2 px-3 hover:bg-slate-800 rounded-md transition-colors flex items-center gap-2.5"
-          >
-            👥 Customers CRM
-          </Link>
-          <Link
-            href="/maintenance"
-            onClick={() => setIsOpen(false)}
-            className="py-2 px-3 hover:bg-slate-800 rounded-md transition-colors flex items-center gap-2.5"
-          >
-            🛠️ Maintenance Log
-          </Link>
-          <Link
-            href="/subscription"
-            onClick={() => setIsOpen(false)}
-            className="py-2 px-3 hover:bg-slate-800 rounded-md transition-colors flex items-center gap-2.5"
-          >
-            💳 Subscription Plans
-          </Link>
-          <Link
-            href="/settings"
-            onClick={() => setIsOpen(false)}
-            className="py-2 px-3 hover:bg-slate-800 rounded-md transition-colors flex items-center gap-2.5"
-          >
-            ⚙️ Business Settings
-          </Link>
+        <div className="xl:hidden bg-slate-900 border-t border-slate-800 px-4 py-3 space-y-1.5 text-sm font-medium">
+          <Link href="/" onClick={() => setIsOpen(false)} className="block py-2 px-3 hover:bg-slate-800 rounded-md">📊 Dashboard</Link>
+          <Link href="/cars" onClick={() => setIsOpen(false)} className="block py-2 px-3 hover:bg-slate-800 rounded-md">🚗 Cars Inventory</Link>
+          <Link href="/bookings" onClick={() => setIsOpen(false)} className="block py-2 px-3 hover:bg-slate-800 rounded-md">📜 Bookings & Fleet</Link>
+          <Link href="/customers" onClick={() => setIsOpen(false)} className="block py-2 px-3 hover:bg-slate-800 rounded-md">👥 Customers CRM</Link>
+          <Link href="/maintenance" onClick={() => setIsOpen(false)} className="block py-2 px-3 hover:bg-slate-800 rounded-md">🛠️ Maintenance Log</Link>
+          <Link href="/subscription" onClick={() => setIsOpen(false)} className="block py-2 px-3 hover:bg-slate-800 rounded-md">💳 Subscription Plans</Link>
+          <Link href="/settings" onClick={() => setIsOpen(false)} className="block py-2 px-3 hover:bg-slate-800 rounded-md">⚙️ Business Settings</Link>
         </div>
       )}
-    </nav>
+    </header>
   );
 }
