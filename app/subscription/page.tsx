@@ -138,20 +138,10 @@ function SubscriptionContent() {
     <div className="min-h-screen bg-gray-900 text-white p-4 sm:p-8">
       <div className="max-w-5xl mx-auto space-y-6 sm:space-y-8">
         
-        {/* Header Section - Responsive Flex-Wrap */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gray-800 pb-4 gap-4">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-blue-400">Subscription & Pricing Tiers</h1>
-            <span className="text-xs sm:text-sm text-gray-400">Choose the best plan for your rental agency</span>
-          </div>
-          <div className="w-full sm:w-auto">
-            <a
-              href="/"
-              className="bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs sm:text-sm font-medium px-4 py-2 rounded transition-colors border border-gray-700 shadow inline-block text-center w-full sm:w-auto"
-            >
-              🏠 Dashboard
-            </a>
-          </div>
+        {/* Clean Header - Navigation handled by global Navbar */}
+        <div className="border-b border-gray-800 pb-4">
+          <h1 className="text-2xl sm:text-3xl font-bold text-blue-400">Subscription & Pricing Tiers</h1>
+          <p className="text-xs sm:text-sm text-gray-400">Choose the best plan for your rental agency</p>
         </div>
 
         {message && (

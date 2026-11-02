@@ -93,25 +93,19 @@ export default function CustomersPage() {
     <div className="min-h-screen bg-gray-900 text-white p-4 sm:p-8">
       <div className="max-w-6xl mx-auto space-y-6 sm:space-y-8">
         
-        {/* Header Section - Responsive Flex-Wrap */}
+        {/* Clean Header - Navigation handled by global Navbar */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gray-800 pb-4 gap-4">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-blue-400">Customer Management & CRM</h1>
             <span className="text-xs sm:text-sm text-gray-400">Manage renters, track history, and control blacklist</span>
           </div>
-          <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+          <div>
             <button
               onClick={() => setShowModal(true)}
-              className="bg-blue-600 hover:bg-blue-500 text-white text-xs sm:text-sm font-medium px-4 py-2 rounded transition-colors shadow cursor-pointer"
+              className="bg-blue-600 hover:bg-blue-500 text-white text-xs sm:text-sm font-medium px-4 py-2 rounded transition-colors shadow cursor-pointer inline-block"
             >
               ➕ Add Customer
             </button>
-            <a
-              href="/"
-              className="bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs sm:text-sm font-medium px-4 py-2 rounded transition-colors border border-gray-700 shadow"
-            >
-              🏠 Dashboard
-            </a>
           </div>
         </div>
 
