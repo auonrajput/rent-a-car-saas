@@ -129,23 +129,25 @@ function SubscriptionContent() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
-        <p className="text-gray-400">Loading subscription details...</p>
+        <p className="text-gray-400 text-sm">Loading subscription details...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-8">
-      <div className="max-w-5xl mx-auto space-y-8">
-        <div className="flex justify-between items-center border-b border-gray-800 pb-4">
+    <div className="min-h-screen bg-gray-900 text-white p-4 sm:p-8">
+      <div className="max-w-5xl mx-auto space-y-6 sm:space-y-8">
+        
+        {/* Header Section - Responsive Flex-Wrap */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gray-800 pb-4 gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-blue-400">Subscription & Pricing Tiers</h1>
-            <span className="text-sm text-gray-400">Choose the best plan for your rental agency</span>
+            <h1 className="text-2xl sm:text-3xl font-bold text-blue-400">Subscription & Pricing Tiers</h1>
+            <span className="text-xs sm:text-sm text-gray-400">Choose the best plan for your rental agency</span>
           </div>
-          <div>
+          <div className="w-full sm:w-auto">
             <a
               href="/"
-              className="bg-gray-800 hover:bg-gray-700 text-gray-200 text-sm font-medium px-4 py-2 rounded transition-colors border border-gray-700 shadow"
+              className="bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs sm:text-sm font-medium px-4 py-2 rounded transition-colors border border-gray-700 shadow inline-block text-center w-full sm:w-auto"
             >
               🏠 Dashboard
             </a>
@@ -153,34 +155,35 @@ function SubscriptionContent() {
         </div>
 
         {message && (
-          <div className="p-4 rounded bg-blue-900/40 border border-blue-700 text-sm text-blue-300 text-center">
+          <div className="p-3 sm:p-4 rounded bg-blue-900/40 border border-blue-700 text-xs sm:text-sm text-blue-300 text-center">
             {message}
           </div>
         )}
 
-        <div className="bg-gray-800 border border-gray-700 rounded-xl p-6 shadow-xl flex justify-between items-center">
+        <div className="bg-gray-800 border border-gray-700 rounded-2xl p-5 sm:p-6 shadow-xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h2 className="text-lg font-semibold text-gray-200">Current Active Plan</h2>
-            <p className="text-sm text-gray-400">Agency: <span className="text-white font-medium">{tenant?.name || 'My Agency'}</span></p>
+            <h2 className="text-base sm:text-lg font-semibold text-gray-200">Current Active Plan</h2>
+            <p className="text-xs sm:text-sm text-gray-400">Agency: <span className="text-white font-medium">{tenant?.name || 'My Agency'}</span></p>
           </div>
-          <div className="text-right">
-            <span className="px-3 py-1 bg-blue-900/60 text-blue-300 border border-blue-700 text-sm rounded-full uppercase font-bold tracking-wider">
+          <div className="text-left sm:text-right">
+            <span className="px-3 py-1 bg-blue-900/60 text-blue-300 border border-blue-700 text-xs sm:text-sm rounded-full uppercase font-bold tracking-wider inline-block">
               {tenant?.subscription_plan || 'Basic'} Plan
             </span>
           </div>
         </div>
 
         {/* Pricing Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 pt-2">
+          
           {/* Basic Plan */}
-          <div className={`bg-gray-800 border rounded-2xl p-8 shadow-xl flex flex-col justify-between space-y-6 ${tenant?.subscription_plan === 'Basic' ? 'border-blue-500 ring-2 ring-blue-500/20' : 'border-gray-700'}`}>
+          <div className={`bg-gray-800 border rounded-2xl p-6 sm:p-8 shadow-xl flex flex-col justify-between space-y-6 ${tenant?.subscription_plan === 'Basic' ? 'border-blue-500 ring-2 ring-blue-500/20' : 'border-gray-700'}`}>
             <div className="space-y-4">
-              <h3 className="text-2xl font-bold text-gray-100">Basic Plan</h3>
-              <p className="text-sm text-gray-400">Ideal for small independent car rental agencies getting started.</p>
-              <div className="text-3xl font-extrabold text-blue-400">
+              <h3 className="text-xl sm:text-2xl font-bold text-gray-100">Basic Plan</h3>
+              <p className="text-xs sm:text-sm text-gray-400">Ideal for small independent car rental agencies getting started.</p>
+              <div className="text-2xl sm:text-3xl font-extrabold text-blue-400">
                 Free <span className="text-xs font-normal text-gray-400">/ forever</span>
               </div>
-              <ul className="space-y-3 text-sm text-gray-300 pt-4 border-t border-gray-700">
+              <ul className="space-y-3 text-xs sm:text-sm text-gray-300 pt-4 border-t border-gray-700">
                 <li className="flex items-center gap-2">✅ Up to 15 Cars Inventory</li>
                 <li className="flex items-center gap-2">✅ Active Fleet Tracking</li>
                 <li className="flex items-center gap-2">✅ PDF Invoices Generation</li>
@@ -191,24 +194,24 @@ function SubscriptionContent() {
             <button
               onClick={() => handleSelectPlan('Basic')}
               disabled={tenant?.subscription_plan === 'Basic' || upgrading}
-              className="w-full bg-gray-700 hover:bg-gray-600 text-white font-semibold py-3 rounded-xl transition-colors disabled:opacity-50 cursor-pointer"
+              className="w-full bg-gray-700 hover:bg-gray-600 text-white font-semibold py-3 rounded-xl transition-colors disabled:opacity-50 cursor-pointer text-xs sm:text-sm shadow"
             >
               {tenant?.subscription_plan === 'Basic' ? 'Current Plan' : 'Select Basic'}
             </button>
           </div>
 
           {/* Pro Plan */}
-          <div className={`bg-gray-800 border rounded-2xl p-8 shadow-xl flex flex-col justify-between space-y-6 ${tenant?.subscription_plan === 'Pro' ? 'border-blue-500 ring-2 ring-blue-500/20' : 'border-blue-600/50'}`}>
+          <div className={`bg-gray-800 border rounded-2xl p-6 sm:p-8 shadow-xl flex flex-col justify-between space-y-6 ${tenant?.subscription_plan === 'Pro' ? 'border-blue-500 ring-2 ring-blue-500/20' : 'border-blue-600/50'}`}>
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <h3 className="text-2xl font-bold text-blue-300">Pro Plan</h3>
-                <span className="bg-blue-600 text-white text-xs px-2.5 py-1 rounded-full font-semibold">Popular</span>
+                <h3 className="text-xl sm:text-2xl font-bold text-blue-300">Pro Plan</h3>
+                <span className="bg-blue-600 text-white text-[10px] sm:text-xs px-2.5 py-1 rounded-full font-semibold">Popular</span>
               </div>
-              <p className="text-sm text-gray-400">For scaling rental businesses needing advanced management.</p>
-              <div className="text-3xl font-extrabold text-blue-400">
+              <p className="text-xs sm:text-sm text-gray-400">For scaling rental businesses needing advanced management.</p>
+              <div className="text-2xl sm:text-3xl font-extrabold text-blue-400">
                 5,000 PKR <span className="text-xs font-normal text-gray-400">/ month</span>
               </div>
-              <ul className="space-y-3 text-sm text-gray-300 pt-4 border-t border-gray-700">
+              <ul className="space-y-3 text-xs sm:text-sm text-gray-300 pt-4 border-t border-gray-700">
                 <li className="flex items-center gap-2">✅ Unlimited Cars Inventory</li>
                 <li className="flex items-center gap-2">✅ Active Fleet & History Tracking</li>
                 <li className="flex items-center gap-2">✅ Custom PDF Invoices & Branding</li>
@@ -219,11 +222,12 @@ function SubscriptionContent() {
             <button
               onClick={() => handleSelectPlan('Pro')}
               disabled={tenant?.subscription_plan === 'Pro' || upgrading}
-              className="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 rounded-xl transition-colors shadow-lg disabled:opacity-50 cursor-pointer"
+              className="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 rounded-xl transition-colors shadow-lg disabled:opacity-50 cursor-pointer text-xs sm:text-sm"
             >
               {upgrading ? 'Connecting...' : tenant?.subscription_plan === 'Pro' ? 'Current Plan' : 'Upgrade via Stripe 💳'}
             </button>
           </div>
+
         </div>
       </div>
     </div>
@@ -232,7 +236,7 @@ function SubscriptionContent() {
 
 export default function SubscriptionPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">Loading subscription...</div>}>
+    <Suspense fallback={<div className="min-h-screen bg-gray-900 text-white flex items-center justify-center text-sm">Loading subscription...</div>}>
       <SubscriptionContent />
     </Suspense>
   );

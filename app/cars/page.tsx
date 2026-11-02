@@ -158,23 +158,25 @@ export default function CarsPage() {
   const matchedModels = brandModelsMap[typedBrandLower] || [];
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-8">
-      <div className="max-w-6xl mx-auto space-y-8">
-        <div className="flex justify-between items-center border-b border-gray-800 pb-4">
+    <div className="min-h-screen bg-gray-900 text-white p-4 sm:p-8">
+      <div className="max-w-6xl mx-auto space-y-6 sm:space-y-8">
+        
+        {/* Header Section - Responsive Flex-Wrap */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gray-800 pb-4 gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-blue-400">Car Inventory Management</h1>
-            <span className="text-sm text-gray-400">Smart Dynamic Brand & Model Auto-Suggestions</span>
+            <h1 className="text-2xl sm:text-3xl font-bold text-blue-400">Car Inventory Management</h1>
+            <span className="text-xs sm:text-sm text-gray-400">Smart Dynamic Brand & Model Auto-Suggestions</span>
           </div>
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-2 w-full sm:w-auto">
             <a
               href="/"
-              className="bg-gray-800 hover:bg-gray-700 text-gray-200 text-sm font-medium px-4 py-2 rounded transition-colors border border-gray-700 shadow"
+              className="bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs sm:text-sm font-medium px-3.5 py-2 rounded transition-colors border border-gray-700 shadow"
             >
               🏠 Dashboard
             </a>
             <a
               href="/bookings"
-              className="bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium px-4 py-2 rounded transition-colors shadow"
+              className="bg-blue-600 hover:bg-blue-500 text-white text-xs sm:text-sm font-medium px-3.5 py-2 rounded transition-colors shadow"
             >
               📜 Manage Bookings →
             </a>
@@ -182,10 +184,10 @@ export default function CarsPage() {
         </div>
 
         {/* Add New Vehicle Form */}
-        <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 shadow-xl">
-          <h2 className="text-xl font-semibold mb-4 text-gray-200">Add New Vehicle to Fleet</h2>
+        <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 sm:p-6 shadow-xl">
+          <h2 className="text-lg sm:text-xl font-semibold mb-4 text-gray-200">Add New Vehicle to Fleet</h2>
           <form onSubmit={handleAddCar} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
               <div>
                 <label className="block text-xs font-medium text-gray-400 mb-1">Car Brand</label>
                 <input
@@ -194,7 +196,7 @@ export default function CarsPage() {
                   placeholder="e.g. Toyota, Honda"
                   value={formData.brand}
                   onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
-                  className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:outline-none focus:border-blue-500 text-sm"
+                  className="w-full bg-gray-900 border border-gray-700 rounded p-2.5 text-white focus:outline-none focus:border-blue-500 text-sm"
                 />
               </div>
 
@@ -206,7 +208,7 @@ export default function CarsPage() {
                   <select
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:outline-none focus:border-blue-500 text-sm cursor-pointer"
+                    className="w-full bg-gray-900 border border-gray-700 rounded p-2.5 text-white focus:outline-none focus:border-blue-500 text-sm cursor-pointer"
                   >
                     <option value="">-- Select Model --</option>
                     {matchedModels.map((m) => (
@@ -220,7 +222,7 @@ export default function CarsPage() {
                     placeholder="e.g. Corolla, Civic, Alto"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:outline-none focus:border-blue-500 text-sm"
+                    className="w-full bg-gray-900 border border-gray-700 rounded p-2.5 text-white focus:outline-none focus:border-blue-500 text-sm"
                   />
                 )}
               </div>
@@ -233,7 +235,7 @@ export default function CarsPage() {
                   placeholder="e.g. LEB-1234"
                   value={formData.registration_number}
                   onChange={(e) => handleRegNumberChange(e.target.value)}
-                  className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:outline-none focus:border-blue-500 text-sm font-mono uppercase"
+                  className="w-full bg-gray-900 border border-gray-700 rounded p-2.5 text-white focus:outline-none focus:border-blue-500 text-sm font-mono uppercase"
                 />
               </div>
 
@@ -244,18 +246,18 @@ export default function CarsPage() {
                   placeholder="e.g. White, Black"
                   value={formData.color}
                   onChange={(e) => setFormData({ ...formData, color: e.target.value })}
-                  className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:outline-none focus:border-blue-500 text-sm"
+                  className="w-full bg-gray-900 border border-gray-700 rounded p-2.5 text-white focus:outline-none focus:border-blue-500 text-sm"
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
                 <label className="block text-xs font-medium text-gray-400 mb-1">Model Year</label>
                 <select
                   value={formData.model}
                   onChange={(e) => setFormData({ ...formData, model: e.target.value })}
-                  className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:outline-none focus:border-blue-500 text-sm cursor-pointer"
+                  className="w-full bg-gray-900 border border-gray-700 rounded p-2.5 text-white focus:outline-none focus:border-blue-500 text-sm cursor-pointer"
                 >
                   {Array.from({ length: 15 }, (_, i) => 2026 - i).map((year) => (
                     <option key={year} value={year}>{year}</option>
@@ -271,7 +273,7 @@ export default function CarsPage() {
                   placeholder="e.g. 5000"
                   value={formData.daily_rate}
                   onChange={(e) => setFormData({ ...formData, daily_rate: e.target.value })}
-                  className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:outline-none focus:border-blue-500 text-sm"
+                  className="w-full bg-gray-900 border border-gray-700 rounded p-2.5 text-white focus:outline-none focus:border-blue-500 text-sm"
                 />
               </div>
 
@@ -280,7 +282,7 @@ export default function CarsPage() {
                 <select
                   value={formData.status}
                   onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                  className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:outline-none focus:border-blue-500 text-sm cursor-pointer"
+                  className="w-full bg-gray-900 border border-gray-700 rounded p-2.5 text-white focus:outline-none focus:border-blue-500 text-sm cursor-pointer"
                 >
                   <option value="available">Available</option>
                   <option value="maintenance">Under Maintenance</option>
@@ -300,13 +302,13 @@ export default function CarsPage() {
 
         {/* Fleet List Display */}
         <div>
-          <h2 className="text-xl font-semibold mb-4 text-gray-200">
+          <h2 className="text-lg sm:text-xl font-semibold mb-4 text-gray-200">
             Current Fleet Vehicles ({filteredCars.length})
           </h2>
           {loading ? (
-            <p className="text-gray-400">Loading fleet inventory...</p>
+            <p className="text-gray-400 text-sm">Loading fleet inventory...</p>
           ) : filteredCars.length === 0 ? (
-            <div className="bg-gray-800 p-6 rounded-lg border border-gray-700 text-center text-gray-400">
+            <div className="bg-gray-800 p-6 rounded-lg border border-gray-700 text-center text-gray-400 text-sm">
               No vehicles found in fleet.
             </div>
           ) : (
@@ -314,12 +316,12 @@ export default function CarsPage() {
               {filteredCars.map((car) => (
                 <div
                   key={car.id}
-                  className="bg-gray-800 border border-gray-700 rounded-lg p-5 shadow-lg space-y-3 flex flex-col justify-between"
+                  className="bg-gray-800 border border-gray-700 rounded-lg p-4 sm:p-5 shadow-lg space-y-3 flex flex-col justify-between"
                 >
                   <div className="space-y-2">
-                    <div className="flex justify-between items-start">
+                    <div className="flex justify-between items-start gap-2">
                       <div>
-                        <h3 className="text-lg font-bold text-blue-300">
+                        <h3 className="text-base sm:text-lg font-bold text-blue-300">
                           {car.brand} {car.name}
                         </h3>
                         <p className="text-xs text-gray-400">
@@ -327,7 +329,7 @@ export default function CarsPage() {
                         </p>
                       </div>
                       <span
-                        className={`px-2 py-0.5 text-xs rounded uppercase font-bold border ${
+                        className={`px-2 py-0.5 text-[10px] sm:text-xs rounded uppercase font-bold border shrink-0 ${
                           car.status === 'available'
                             ? 'bg-green-900/60 text-green-300 border-green-700'
                             : 'bg-amber-900/60 text-amber-300 border-amber-700'
@@ -351,13 +353,13 @@ export default function CarsPage() {
                     </div>
                   </div>
 
-                  <div className="flex justify-between items-center pt-2 border-t border-gray-700">
+                  <div className="flex justify-between items-center pt-2 border-t border-gray-700 gap-2">
                     <span className="text-green-400 font-bold text-sm">
                       {car.daily_rate} PKR / day
                     </span>
                     <button
                       onClick={() => handleDeleteCar(car.id)}
-                      className="text-xs bg-red-600/80 hover:bg-red-600 text-white px-2.5 py-1 rounded transition-colors cursor-pointer"
+                      className="text-xs bg-red-600/80 hover:bg-red-600 text-white px-2.5 py-1.5 rounded transition-colors cursor-pointer font-medium shadow"
                     >
                       Delete
                     </button>

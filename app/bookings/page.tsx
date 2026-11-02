@@ -83,7 +83,7 @@ function TripCountdown({ startTime, endTime }: { startTime: string; endTime: str
   }
 
   return (
-    <div className="flex items-center gap-2 bg-gray-950 px-3 py-1.5 rounded border border-gray-700 text-xs">
+    <div className="flex items-center gap-2 bg-gray-950 px-3 py-1.5 rounded border border-gray-700 text-xs w-full sm:w-auto">
       <span className="text-gray-400 font-medium">Time Left:</span>
       <span className="text-amber-400 font-mono font-bold">
         {timeLeft.days > 0 ? `${timeLeft.days}d ` : ''}
@@ -336,46 +336,48 @@ export default function BookingsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-8">
-      <div className="max-w-6xl mx-auto space-y-8">
-        <div className="flex justify-between items-center border-b border-gray-800 pb-4">
+    <div className="min-h-screen bg-gray-900 text-white p-4 sm:p-8">
+      <div className="max-w-6xl mx-auto space-y-6 sm:space-y-8">
+        
+        {/* Header Section - Fully Responsive Flex-Wrap */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gray-800 pb-4 gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-blue-400">Active Fleet Tracking & Agreements</h1>
-            <span className="text-sm text-gray-400">Manage rentals with real-time countdown timers</span>
+            <h1 className="text-2xl sm:text-3xl font-bold text-blue-400">Active Fleet Tracking & Agreements</h1>
+            <span className="text-xs sm:text-sm text-gray-400">Manage rentals with real-time countdown timers</span>
           </div>
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-2 w-full sm:w-auto">
             <a
               href="/"
-              className="bg-gray-800 hover:bg-gray-700 text-gray-200 text-sm font-medium px-4 py-2 rounded transition-colors border border-gray-700 shadow"
+              className="bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs sm:text-sm font-medium px-3.5 py-2 rounded transition-colors border border-gray-700 shadow"
             >
               🏠 Dashboard
             </a>
             <a
               href="/cars"
-              className="bg-gray-800 hover:bg-gray-700 text-gray-200 text-sm font-medium px-4 py-2 rounded transition-colors border border-gray-700 shadow"
+              className="bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs sm:text-sm font-medium px-3.5 py-2 rounded transition-colors border border-gray-700 shadow"
             >
               🚗 Manage Cars
             </a>
             <a
               href="/bookings/history"
-              className="bg-gray-800 hover:bg-gray-700 text-gray-200 text-sm font-medium px-4 py-2 rounded transition-colors border border-gray-700 shadow"
+              className="bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs sm:text-sm font-medium px-3.5 py-2 rounded transition-colors border border-gray-700 shadow"
             >
-              📜 Booking History →
+              📜 History →
             </a>
           </div>
         </div>
 
         {/* New Booking Form */}
-        <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 shadow-xl">
-          <h2 className="text-xl font-semibold mb-4 text-gray-200">Create New Booking</h2>
+        <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 sm:p-6 shadow-xl">
+          <h2 className="text-lg sm:text-xl font-semibold mb-4 text-gray-200">Create New Booking</h2>
           <form onSubmit={handleBookingSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-400 mb-1">Select Available Car</label>
+              <label className="block text-xs sm:text-sm font-medium text-gray-400 mb-1">Select Available Car</label>
               <select
                 value={formData.car_id}
                 onChange={(e) => setFormData({ ...formData, car_id: e.target.value })}
                 required
-                className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:outline-none focus:border-blue-500"
+                className="w-full bg-gray-900 border border-gray-700 rounded p-2.5 text-white text-sm focus:outline-none focus:border-blue-500"
               >
                 <option value="">-- Choose Car --</option>
                 {cars.map((car) => (
@@ -387,48 +389,48 @@ export default function BookingsPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-400 mb-1">Customer Name</label>
+              <label className="block text-xs sm:text-sm font-medium text-gray-400 mb-1">Customer Name</label>
               <input
                 type="text"
                 required
                 placeholder="e.g. Ahmed Khan"
                 value={formData.customer_name}
                 onChange={(e) => setFormData({ ...formData, customer_name: e.target.value })}
-                className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:outline-none focus:border-blue-500"
+                className="w-full bg-gray-900 border border-gray-700 rounded p-2.5 text-white text-sm focus:outline-none focus:border-blue-500"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-400 mb-1">Customer Phone</label>
+              <label className="block text-xs sm:text-sm font-medium text-gray-400 mb-1">Customer Phone</label>
               <input
                 type="text"
                 required
                 placeholder="e.g. 03231234567"
                 value={formData.customer_phone}
                 onChange={(e) => setFormData({ ...formData, customer_phone: e.target.value })}
-                className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:outline-none focus:border-blue-500"
+                className="w-full bg-gray-900 border border-gray-700 rounded p-2.5 text-white text-sm focus:outline-none focus:border-blue-500"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-400 mb-1">Start Date & Time</label>
+              <label className="block text-xs sm:text-sm font-medium text-gray-400 mb-1">Start Date & Time</label>
               <input
                 type="datetime-local"
                 required
                 value={formData.start_time}
                 onChange={(e) => setFormData({ ...formData, start_time: e.target.value })}
-                className="w-full bg-gray-900 border border-gray-700 rounded p-2.5 text-white focus:outline-none focus:border-blue-500 [color-scheme:dark] cursor-pointer"
+                className="w-full bg-gray-900 border border-gray-700 rounded p-2.5 text-white text-sm focus:outline-none focus:border-blue-500 [color-scheme:dark] cursor-pointer"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-400 mb-1">End Date & Time</label>
+              <label className="block text-xs sm:text-sm font-medium text-gray-400 mb-1">End Date & Time</label>
               <input
                 type="datetime-local"
                 required
                 value={formData.end_time}
                 onChange={(e) => setFormData({ ...formData, end_time: e.target.value })}
-                className="w-full bg-gray-900 border border-gray-700 rounded p-2.5 text-white focus:outline-none focus:border-blue-500 [color-scheme:dark] cursor-pointer"
+                className="w-full bg-gray-900 border border-gray-700 rounded p-2.5 text-white text-sm focus:outline-none focus:border-blue-500 [color-scheme:dark] cursor-pointer"
               />
             </div>
 
@@ -436,7 +438,7 @@ export default function BookingsPage() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium p-2.5 rounded transition-colors disabled:opacity-50 cursor-pointer shadow"
+                className="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium p-2.5 rounded transition-colors disabled:opacity-50 cursor-pointer shadow text-sm"
               >
                 {submitting ? 'Confirming...' : 'Confirm Booking'}
               </button>
@@ -446,34 +448,34 @@ export default function BookingsPage() {
 
         {/* Active Bookings Tracking List */}
         <div>
-          <h2 className="text-xl font-semibold mb-4 text-gray-200">Currently Rented / On Trip Vehicles ({bookings.length})</h2>
+          <h2 className="text-lg sm:text-xl font-semibold mb-4 text-gray-200">Currently Rented / On Trip Vehicles ({bookings.length})</h2>
           {loading ? (
-            <p className="text-gray-400">Loading active bookings...</p>
+            <p className="text-gray-400 text-sm">Loading active bookings...</p>
           ) : bookings.length === 0 ? (
             <div className="bg-gray-800 p-6 rounded-lg border border-gray-700">
-              <p className="text-gray-300">No vehicles currently on trip. All cars are available in inventory!</p>
+              <p className="text-gray-300 text-sm">No vehicles currently on trip. All cars are available in inventory!</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {bookings.map((b) => (
-                <div key={b.id} className="bg-gray-800 border border-gray-700 rounded-lg p-5 shadow-lg space-y-3">
-                  <div className="flex justify-between items-start">
+                <div key={b.id} className="bg-gray-800 border border-gray-700 rounded-lg p-4 sm:p-5 shadow-lg space-y-3">
+                  <div className="flex justify-between items-start gap-2">
                     <div>
-                      <h3 className="text-lg font-bold text-blue-300">
-                        {b.cars?.brand} {b.cars?.name} <span className="font-mono text-amber-300 text-sm">({b.cars?.registration_number})</span>
+                      <h3 className="text-base sm:text-lg font-bold text-blue-300">
+                        {b.cars?.brand} {b.cars?.name} <span className="font-mono text-amber-300 text-xs sm:text-sm">({b.cars?.registration_number})</span>
                       </h3>
-                      <p className="text-sm text-gray-400">Customer: <span className="text-white font-medium">{b.customer_name}</span> ({b.customer_phone})</p>
+                      <p className="text-xs sm:text-sm text-gray-400">Customer: <span className="text-white font-medium">{b.customer_name}</span> ({b.customer_phone})</p>
                     </div>
-                    <div className="flex flex-col items-end gap-1">
-                      <span className="bg-blue-900/60 text-blue-300 border border-blue-700 px-2 py-0.5 text-xs rounded uppercase font-medium">
+                    <div className="flex flex-col items-end gap-1 shrink-0">
+                      <span className="bg-blue-900/60 text-blue-300 border border-blue-700 px-2 py-0.5 text-[10px] sm:text-xs rounded uppercase font-medium">
                         On Trip
                       </span>
                       {b.is_signed ? (
-                        <span className="bg-green-900/60 text-green-300 border border-green-700 px-2 py-0.5 text-xs rounded font-bold">
+                        <span className="bg-green-900/60 text-green-300 border border-green-700 px-2 py-0.5 text-[10px] sm:text-xs rounded font-bold">
                           Signed ✅
                         </span>
                       ) : (
-                        <span className="bg-amber-900/60 text-amber-300 border border-amber-700 px-2 py-0.5 text-xs rounded font-bold">
+                        <span className="bg-amber-900/60 text-amber-300 border border-amber-700 px-2 py-0.5 text-[10px] sm:text-xs rounded font-bold">
                           Pending Sign ⏳
                         </span>
                       )}
@@ -481,7 +483,7 @@ export default function BookingsPage() {
                   </div>
 
                   {/* Date and Exact Time Display */}
-                  <div className="text-xs text-gray-300 grid grid-cols-2 gap-2 bg-gray-900 p-3 rounded border border-gray-700/60">
+                  <div className="text-xs text-gray-300 grid grid-cols-1 sm:grid-cols-2 gap-2 bg-gray-900 p-3 rounded border border-gray-700/60">
                     <div>From: <span className="text-white font-medium">{formatDateTime(b.start_date)}</span></div>
                     <div>To: <span className="text-white font-medium">{formatDateTime(b.end_date)}</span></div>
                   </div>
@@ -529,9 +531,9 @@ export default function BookingsPage() {
                     </div>
                   )}
 
-                  <div className="flex justify-between items-center pt-2 border-t border-gray-700">
-                    <span className="text-green-400 font-bold">Total: {b.total_price} PKR</span>
-                    <div className="flex gap-2 items-center">
+                  <div className="flex flex-wrap justify-between items-center pt-2 border-t border-gray-700 gap-2">
+                    <span className="text-green-400 font-bold text-sm">Total: {b.total_price} PKR</span>
+                    <div className="flex flex-wrap gap-2 items-center">
                       <a
                         href={`/bookings/${b.id}/invoice`}
                         className="text-xs bg-gray-700 hover:bg-gray-600 text-gray-200 border border-gray-600 px-3 py-1.5 rounded transition-colors flex items-center gap-1"
@@ -553,17 +555,17 @@ export default function BookingsPage() {
         </div>
       </div>
 
-      {/* Customer Agreement Modal */}
+      {/* Customer Agreement Modal - Fully Responsive & Scrollable */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-800 border border-gray-700 rounded-lg max-w-lg w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-gray-800 border border-gray-700 rounded-lg max-w-lg w-full p-4 sm:p-6 shadow-2xl space-y-4 my-auto max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center border-b border-gray-700 pb-3">
-              <h3 className="text-lg font-bold text-blue-400">
+              <h3 className="text-base sm:text-lg font-bold text-blue-400 pr-2">
                 {selectedBookingForModal?.is_signed ? 'Customer Agreement & Payment Details (Verified)' : 'Customer Agreement & Payment Verification'}
               </h3>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="text-gray-400 hover:text-white text-sm font-bold cursor-pointer"
+                className="text-gray-400 hover:text-white text-base font-bold cursor-pointer shrink-0 p-1"
               >
                 ✕
               </button>
@@ -578,7 +580,7 @@ export default function BookingsPage() {
 
             <form onSubmit={handleAgreementSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">Customer CNIC Number</label>
+                <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-1">Customer CNIC Number</label>
                 <input
                   type="text"
                   required
@@ -591,7 +593,7 @@ export default function BookingsPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">Residential Address</label>
+                <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-1">Residential Address</label>
                 <textarea
                   required
                   rows={2}
@@ -603,9 +605,9 @@ export default function BookingsPage() {
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">Payment Method</label>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-1">Payment Method</label>
                   <select
                     disabled={selectedBookingForModal?.is_signed}
                     value={agreementForm.payment_method}
@@ -620,7 +622,7 @@ export default function BookingsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">Advance Amount (PKR) *</label>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-1">Advance Amount (PKR) *</label>
                   <input
                     type="number"
                     required
@@ -643,9 +645,9 @@ export default function BookingsPage() {
               )}
 
               {/* Direct Camera Capture for CNIC Front & Back */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">📷 CNIC Front Side</label>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-1">📷 CNIC Front Side</label>
                   <input
                     type="file"
                     accept="image/*"
@@ -657,7 +659,7 @@ export default function BookingsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">📷 CNIC Back Side</label>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-1">📷 CNIC Back Side</label>
                   <input
                     type="file"
                     accept="image/*"
@@ -670,7 +672,7 @@ export default function BookingsPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">Additional Notes / Remarks</label>
+                <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-1">Additional Notes / Remarks</label>
                 <input
                   type="text"
                   disabled={selectedBookingForModal?.is_signed}
@@ -681,7 +683,7 @@ export default function BookingsPage() {
                 />
               </div>
 
-              <div className="flex justify-end gap-3 pt-2 border-t border-gray-700">
+              <div className="flex flex-wrap justify-end gap-2 pt-2 border-t border-gray-700">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}

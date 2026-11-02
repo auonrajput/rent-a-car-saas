@@ -99,16 +99,17 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center p-4">
-      <div className="max-w-md w-full bg-gray-800 border border-gray-700 rounded-xl p-8 shadow-2xl space-y-6">
-        <div className="text-center space-y-2">
-          <h1 className="text-3xl font-extrabold text-blue-400">Rent-a-Car SaaS</h1>
-          <p className="text-sm text-gray-400">
+      <div className="max-w-md w-full bg-gray-800 border border-gray-700 rounded-2xl p-6 sm:p-8 shadow-2xl space-y-6">
+        
+        <div className="text-center space-y-1.5">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-blue-400">Rent-a-Car SaaS</h1>
+          <p className="text-xs sm:text-sm text-gray-400">
             {isSignUp ? 'Create your personal account' : 'Sign in to manage your fleet'}
           </p>
         </div>
 
         {message && (
-          <div className="p-3 rounded bg-blue-900/40 border border-blue-700 text-sm text-blue-300 text-center">
+          <div className="p-3 rounded-lg bg-blue-900/40 border border-blue-700 text-xs sm:text-sm text-blue-300 text-center">
             {message}
           </div>
         )}
@@ -123,7 +124,7 @@ export default function LoginPage() {
                 placeholder="e.g. Auon Rajput"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                className="w-full bg-gray-900 border border-gray-700 rounded p-2.5 text-white focus:outline-none focus:border-blue-500 text-sm"
+                className="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-blue-500 text-sm"
               />
             </div>
           )}
@@ -136,7 +137,7 @@ export default function LoginPage() {
               placeholder="user@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-gray-900 border border-gray-700 rounded p-2.5 text-white focus:outline-none focus:border-blue-500 text-sm"
+              className="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-blue-500 text-sm"
             />
           </div>
 
@@ -149,12 +150,12 @@ export default function LoginPage() {
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-gray-900 border border-gray-700 rounded p-2.5 pr-10 text-white focus:outline-none focus:border-blue-500 text-sm"
+                className="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 pr-10 text-white focus:outline-none focus:border-blue-500 text-sm"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-2.5 text-gray-400 hover:text-white text-sm focus:outline-none"
+                className="absolute right-3 top-3 text-gray-400 hover:text-white text-xs sm:text-sm focus:outline-none cursor-pointer"
               >
                 {showPassword ? '👁️‍🗨️' : '👁️'}
               </button>
@@ -174,12 +175,12 @@ export default function LoginPage() {
                   placeholder="••••••••"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full bg-gray-900 border border-gray-700 rounded p-2.5 pr-10 text-white focus:outline-none focus:border-blue-500 text-sm"
+                  className="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 pr-10 text-white focus:outline-none focus:border-blue-500 text-sm"
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-2.5 text-gray-400 hover:text-white text-sm focus:outline-none"
+                  className="absolute right-3 top-3 text-gray-400 hover:text-white text-xs sm:text-sm focus:outline-none cursor-pointer"
                 >
                   {showConfirmPassword ? '👁️‍🗨️' : '👁️'}
                 </button>
@@ -190,7 +191,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2.5 rounded transition-colors shadow disabled:opacity-50 text-sm cursor-pointer"
+            className="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2.5 rounded-lg transition-colors shadow disabled:opacity-50 text-sm cursor-pointer"
           >
             {loading ? 'Processing...' : isSignUp ? 'Sign Up' : 'Sign In'}
           </button>
@@ -198,6 +199,7 @@ export default function LoginPage() {
 
         <div className="text-center pt-2 border-t border-gray-700">
           <button
+            type="button"
             onClick={() => {
               setIsSignUp(!isSignUp);
               setMessage('');
