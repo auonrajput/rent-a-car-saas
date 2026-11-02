@@ -22,24 +22,14 @@ export default function Navbar() {
           </span>
         </Link>
 
-        {/* Desktop Links */}
-        <nav className="hidden xl:flex items-center gap-4 text-sm font-medium">
-          <Link href="/" className="hover:text-blue-400 transition-colors">Dashboard</Link>
-          <Link href="/cars" className="hover:text-blue-400 transition-colors">Cars</Link>
-          <Link href="/bookings" className="hover:text-blue-400 transition-colors">Bookings</Link>
-          <Link href="/customers" className="hover:text-blue-400 transition-colors">Customers</Link>
-          <Link href="/maintenance" className="hover:text-blue-400 transition-colors">Maintenance</Link>
-          <Link href="/subscription" className="hover:text-blue-400 transition-colors">Plans</Link>
-          <Link href="/settings" className="hover:text-blue-400 transition-colors">Settings</Link>
-        </nav>
-
-        {/* Hamburger Toggle Button (Har screen par available) */}
+        {/* Hamburger Toggle Button - Sab screens par ek jaisa clean menu */}
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="p-2 rounded-lg bg-slate-800 text-slate-200 hover:bg-slate-700 border border-slate-700 focus:outline-none cursor-pointer"
+          className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-800 text-slate-200 hover:bg-slate-700 border border-slate-700 focus:outline-none cursor-pointer text-xs sm:text-sm font-medium"
           aria-label="Toggle Menu"
         >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <span>Menu</span>
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             {isOpen ? (
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             ) : (
@@ -51,7 +41,7 @@ export default function Navbar() {
 
       {/* Dropdown Menu - Saare pages yahan honge */}
       {isOpen && (
-        <div className="bg-slate-900 border-t border-slate-800 px-4 py-3 space-y-1.5 text-sm font-medium shadow-2xl">
+        <nav className="bg-slate-900 border-t border-slate-800 px-4 py-3 space-y-1.5 text-sm font-medium shadow-2xl">
           <Link href="/" onClick={() => setIsOpen(false)} className="block py-2 px-3 hover:bg-slate-800 rounded-md">📊 Dashboard</Link>
           <Link href="/cars" onClick={() => setIsOpen(false)} className="block py-2 px-3 hover:bg-slate-800 rounded-md">🚗 Cars Inventory</Link>
           <Link href="/bookings" onClick={() => setIsOpen(false)} className="block py-2 px-3 hover:bg-slate-800 rounded-md">📜 Bookings & Fleet</Link>
@@ -59,7 +49,7 @@ export default function Navbar() {
           <Link href="/maintenance" onClick={() => setIsOpen(false)} className="block py-2 px-3 hover:bg-slate-800 rounded-md">🛠️ Maintenance Log</Link>
           <Link href="/subscription" onClick={() => setIsOpen(false)} className="block py-2 px-3 hover:bg-slate-800 rounded-md">💳 Subscription Plans</Link>
           <Link href="/settings" onClick={() => setIsOpen(false)} className="block py-2 px-3 hover:bg-slate-800 rounded-md">⚙️ Business Settings</Link>
-        </div>
+        </nav>
       )}
     </header>
   );
