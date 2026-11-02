@@ -339,30 +339,18 @@ export default function BookingsPage() {
     <div className="min-h-screen bg-gray-900 text-white p-4 sm:p-8">
       <div className="max-w-6xl mx-auto space-y-6 sm:space-y-8">
         
-        {/* Header Section - Fully Responsive Flex-Wrap */}
+        {/* Clean Header - Global Navbar handles navigation */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gray-800 pb-4 gap-4">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-blue-400">Active Fleet Tracking & Agreements</h1>
             <span className="text-xs sm:text-sm text-gray-400">Manage rentals with real-time countdown timers</span>
           </div>
-          <div className="flex flex-wrap gap-2 w-full sm:w-auto">
-            <a
-              href="/"
-              className="bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs sm:text-sm font-medium px-3.5 py-2 rounded transition-colors border border-gray-700 shadow"
-            >
-              🏠 Dashboard
-            </a>
-            <a
-              href="/cars"
-              className="bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs sm:text-sm font-medium px-3.5 py-2 rounded transition-colors border border-gray-700 shadow"
-            >
-              🚗 Manage Cars
-            </a>
+          <div className="w-full sm:w-auto">
             <a
               href="/bookings/history"
-              className="bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs sm:text-sm font-medium px-3.5 py-2 rounded transition-colors border border-gray-700 shadow"
+              className="bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs sm:text-sm font-medium px-4 py-2 rounded transition-colors border border-gray-700 shadow inline-block text-center w-full sm:w-auto"
             >
-              📜 History →
+              📜 View Booking History →
             </a>
           </div>
         </div>
@@ -377,7 +365,7 @@ export default function BookingsPage() {
                 value={formData.car_id}
                 onChange={(e) => setFormData({ ...formData, car_id: e.target.value })}
                 required
-                className="w-full bg-gray-900 border border-gray-700 rounded p-2.5 text-white text-sm focus:outline-none focus:border-blue-500"
+                className="w-full bg-gray-900 border border-gray-700 rounded p-2.5 text-white text-sm focus:outline-none focus:border-blue-500 cursor-pointer"
               >
                 <option value="">-- Choose Car --</option>
                 {cars.map((car) => (

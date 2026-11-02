@@ -161,26 +161,10 @@ export default function CarsPage() {
     <div className="min-h-screen bg-gray-900 text-white p-4 sm:p-8">
       <div className="max-w-6xl mx-auto space-y-6 sm:space-y-8">
         
-        {/* Header Section - Responsive Flex-Wrap */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gray-800 pb-4 gap-4">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-blue-400">Car Inventory Management</h1>
-            <span className="text-xs sm:text-sm text-gray-400">Smart Dynamic Brand & Model Auto-Suggestions</span>
-          </div>
-          <div className="flex flex-wrap gap-2 w-full sm:w-auto">
-            <a
-              href="/"
-              className="bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs sm:text-sm font-medium px-3.5 py-2 rounded transition-colors border border-gray-700 shadow"
-            >
-              🏠 Dashboard
-            </a>
-            <a
-              href="/bookings"
-              className="bg-blue-600 hover:bg-blue-500 text-white text-xs sm:text-sm font-medium px-3.5 py-2 rounded transition-colors shadow"
-            >
-              📜 Manage Bookings →
-            </a>
-          </div>
+        {/* Clean Header - Navigation handled by global Navbar */}
+        <div className="border-b border-gray-800 pb-4">
+          <h1 className="text-2xl sm:text-3xl font-bold text-blue-400">Car Inventory Management</h1>
+          <p className="text-xs sm:text-sm text-gray-400">Smart Dynamic Brand & Model Auto-Suggestions</p>
         </div>
 
         {/* Add New Vehicle Form */}
