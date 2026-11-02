@@ -336,23 +336,13 @@ export default function BookingsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-4 sm:p-8">
+    <div className="min-h-screen bg-gray-900 text-white p-4 sm:p-8 overflow-x-hidden">
       <div className="max-w-6xl mx-auto space-y-6 sm:space-y-8">
         
-        {/* Clean Header - Global Navbar handles navigation */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gray-800 pb-4 gap-4">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-blue-400">Active Fleet Tracking & Agreements</h1>
-            <span className="text-xs sm:text-sm text-gray-400">Manage rentals with real-time countdown timers</span>
-          </div>
-          <div className="w-full sm:w-auto">
-            <a
-              href="/bookings/history"
-              className="bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs sm:text-sm font-medium px-4 py-2 rounded transition-colors border border-gray-700 shadow inline-block text-center w-full sm:w-auto"
-            >
-              📜 View Booking History →
-            </a>
-          </div>
+        {/* Clean Header - Navigation handled by global Navbar */}
+        <div className="border-b border-gray-800 pb-4">
+          <h1 className="text-2xl sm:text-3xl font-bold text-blue-400">Active Fleet Tracking & Agreements</h1>
+          <p className="text-xs sm:text-sm text-gray-400">Manage rentals with real-time countdown timers</p>
         </div>
 
         {/* New Booking Form */}
