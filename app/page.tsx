@@ -15,19 +15,25 @@ export default function DashboardPage() {
   const [recentBookings, setRecentBookings] = useState<any[]>([]);
   const [userRole, setUserRole] = useState<'Owner' | 'Manager' | 'Staff'>('Owner');
   const [loading, setLoading] = useState(true);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   async function fetchDashboardData() {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      const { data: tenantData } = await supabase
-        .from('tenants')
-        .select('role')
-        .eq('id', user.id)
-        .single();
-      
-      if (tenantData?.role) {
-        setUserRole(tenantData.role as any);
-      }
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    
+    // Strict Auth Guard: Redirect unauthenticated users immediately to /login
+    if (userError || !user) {
+      window.location.href = '/login';
+      return;
+    }
+
+    const { data: tenantData } = await supabase
+      .from('tenants')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+    
+    if (tenantData?.role) {
+      setUserRole(tenantData.role as any);
     }
 
     const { data: bookingsData } = await supabase
@@ -76,28 +82,44 @@ export default function DashboardPage() {
       <div className="max-w-7xl mx-auto space-y-8">
         
         {/* Enterprise Top Header / Navigation Bar */}
-        <header className="bg-gray-800/80 backdrop-blur border border-gray-700/80 rounded-2xl p-4 sm:p-6 shadow-2xl flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-          <div className="space-y-1">
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-blue-400">
-              Royal Rent A Car
-            </h1>
-            <p className="text-xs sm:text-sm text-gray-400">
-              Multi-Tenant Fleet Management System
-            </p>
+        <header className="bg-gray-800/80 backdrop-blur border border-gray-700/80 rounded-2xl p-4 sm:p-6 shadow-2xl flex flex-col gap-4">
+          <div className="flex items-center justify-between w-full">
+            <div className="space-y-1">
+              <h1 className="text-xl sm:text-3xl font-extrabold tracking-tight text-blue-400">
+                Royal Rent A Car
+              </h1>
+              <p className="text-xs sm:text-sm text-gray-400">
+                Multi-Tenant Fleet Management System
+              </p>
+            </div>
+
+            {/* Mobile Hamburger & Role Badge Container */}
+            <div className="flex items-center gap-2 lg:hidden">
+              <div className="bg-blue-950/80 border border-blue-500/40 text-blue-300 text-[10px] sm:text-xs px-2.5 py-1 rounded-full font-bold uppercase tracking-wider">
+                {userRole}
+              </div>
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="bg-gray-700 hover:bg-gray-600 text-white p-2 rounded-xl text-sm font-medium border border-gray-600 flex items-center justify-center"
+                aria-label="Toggle Menu"
+              >
+                <span className="text-lg">☰</span>
+              </button>
+            </div>
           </div>
 
-          <div className="flex flex-wrap items-center justify-between lg:justify-end gap-3 w-full lg:w-auto border-t lg:border-t-0 border-gray-700/60 pt-4 lg:pt-0">
-            {/* Quick Action Navigation Buttons */}
-            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          {/* Navigation Bar / Hamburger Content */}
+          <div className={`flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4 border-t border-gray-700/60 pt-4 ${mobileMenuOpen ? 'flex' : 'hidden lg:flex'}`}>
+            <div className="flex flex-col lg:flex-row flex-wrap items-stretch lg:items-center gap-2 sm:gap-3 w-full lg:w-auto">
               <a
                 href="/cars"
-                className="bg-gray-700/70 hover:bg-gray-700 text-gray-200 text-xs sm:text-sm font-medium px-3.5 py-2 rounded-xl transition-all border border-gray-600/50 shadow-sm flex items-center gap-1.5"
+                className="bg-gray-700/70 hover:bg-gray-700 text-gray-200 text-xs sm:text-sm font-medium px-3.5 py-2.5 rounded-xl transition-all border border-gray-600/50 shadow-sm flex items-center justify-center lg:justify-start gap-1.5"
               >
                 🚗 <span>Cars</span>
               </a>
               <a
                 href="/bookings"
-                className="bg-blue-600 hover:bg-blue-500 text-white text-xs sm:text-sm font-medium px-3.5 py-2 rounded-xl transition-all shadow-md flex items-center gap-1.5"
+                className="bg-blue-600 hover:bg-blue-500 text-white text-xs sm:text-sm font-medium px-3.5 py-2.5 rounded-xl transition-all shadow-md flex items-center justify-center lg:justify-start gap-1.5"
               >
                 📋 <span>Bookings</span>
               </a>
@@ -105,7 +127,7 @@ export default function DashboardPage() {
               {hasPermission(userRole, 'MANAGE_BILLING') && (
                 <a
                   href="/subscription"
-                  className="bg-purple-600 hover:bg-purple-500 text-white text-xs sm:text-sm font-medium px-3.5 py-2 rounded-xl transition-all shadow-md flex items-center gap-1.5"
+                  className="bg-purple-600 hover:bg-purple-500 text-white text-xs sm:text-sm font-medium px-3.5 py-2.5 rounded-xl transition-all shadow-md flex items-center justify-center lg:justify-start gap-1.5"
                 >
                   ⭐ <span>Subscription</span>
                 </a>
@@ -114,15 +136,15 @@ export default function DashboardPage() {
               {hasPermission(userRole, 'MANAGE_SETTINGS') && (
                 <a
                   href="/settings"
-                  className="bg-gray-700/70 hover:bg-gray-700 text-gray-200 text-xs sm:text-sm font-medium px-3.5 py-2 rounded-xl transition-all border border-gray-600/50 shadow-sm flex items-center gap-1.5"
+                  className="bg-gray-700/70 hover:bg-gray-700 text-gray-200 text-xs sm:text-sm font-medium px-3.5 py-2.5 rounded-xl transition-all border border-gray-600/50 shadow-sm flex items-center justify-center lg:justify-start gap-1.5"
                 >
                   ⚙️ <span>Settings</span>
                 </a>
               )}
             </div>
 
-            {/* Right Corner Role Badge */}
-            <div className="flex items-center pl-2 border-l border-gray-700/80">
+            {/* Desktop Right Corner Role Badge */}
+            <div className="hidden lg:flex items-center pl-2 border-l border-gray-700/80">
               <div className="bg-blue-950/80 border border-blue-500/40 text-blue-300 text-xs px-3 py-1.5 rounded-full font-bold uppercase tracking-wider shadow-inner flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span>
                 {userRole}
