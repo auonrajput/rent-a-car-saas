@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import Link from 'next/link';
 
 export default function MaintenancePage() {
   const [logs, setLogs] = useState<any[]>([]);
@@ -127,17 +126,12 @@ export default function MaintenancePage() {
     <div className="min-h-screen bg-gray-900 text-white p-4 sm:p-8">
       <div className="max-w-6xl mx-auto space-y-6 sm:space-y-8">
         
+        {/* Clean Header Without Back Button */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gray-800 pb-4 gap-4">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-blue-400">Fleet Maintenance & Expense Log</h1>
             <p className="text-xs sm:text-sm text-gray-400">Track oil changes, fuel logs, engine tuning, and workshop repairs</p>
           </div>
-          <Link
-            href="/"
-            className="bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs sm:text-sm font-medium px-4 py-2.5 rounded-lg border border-gray-700 shadow"
-          >
-            ← Back to Dashboard
-          </Link>
         </div>
 
         {canManage && (

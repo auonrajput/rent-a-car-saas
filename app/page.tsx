@@ -75,7 +75,6 @@ export default function DashboardPage() {
 
     bookings.forEach((b) => {
       if (!b.end_date) return;
-      // Extract YYYY-MM-DD from start/end strings
       const endDateOnly = b.end_date.split('T')[0];
       const isCompletedOrReturned = b.status?.toLowerCase() === 'completed' || b.status?.toLowerCase() === 'returned';
 
@@ -97,7 +96,7 @@ export default function DashboardPage() {
     setDueTodayBookings(dueToday);
     setOverdueBookings(overdue);
 
-    // Upcoming maintenance check (e.g., status or next service date)
+    // Upcoming maintenance check
     const pendingMaintenance = maintenance.filter((m) => m.status === 'pending' || m.status === 'due');
     const enrichedMaintenance = pendingMaintenance.map((m) => {
       const foundCar = cars.find((c) => c.id === m.car_id);
@@ -134,12 +133,8 @@ export default function DashboardPage() {
         {/* Clean Dashboard Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gray-800 pb-4 gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-blue-400">Royal Rent A Car Dashboard</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-blue-400">Dashboard</h1>
             <p className="text-xs sm:text-sm text-gray-400">Multi-Tenant Fleet Management System & Analytics</p>
-          </div>
-          <div className="bg-blue-950/80 border border-blue-500/40 text-blue-300 text-xs px-3 py-1.5 rounded-full font-bold uppercase tracking-wider shadow-inner flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span>
-            Role: {userRole}
           </div>
         </div>
 
@@ -253,7 +248,6 @@ export default function DashboardPage() {
 
             {/* Visual Analytics & Fleet Breakdown Section */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Fleet Utilization Progress Chart */}
               <div className="bg-gray-800 border border-gray-700/80 rounded-2xl p-6 shadow-xl space-y-4">
                 <div className="flex justify-between items-center">
                   <h3 className="text-base font-bold text-blue-300">📊 Fleet Utilization Breakdown</h3>
@@ -294,7 +288,6 @@ export default function DashboardPage() {
                 </p>
               </div>
 
-              {/* Performance Banner & Quick Action */}
               <div className="bg-gradient-to-r from-blue-950/60 via-gray-800 to-gray-800 border border-blue-900/40 rounded-2xl p-6 shadow-xl flex flex-col justify-between space-y-4">
                 <div className="space-y-1">
                   <h3 className="text-base font-bold text-blue-300">🚀 System Performance & Billing</h3>
