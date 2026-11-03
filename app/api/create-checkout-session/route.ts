@@ -8,9 +8,12 @@ export async function POST(req: Request) {
 
     const stripeKey = process.env.STRIPE_SECRET_KEY;
 
-    // Agar Stripe key nahi hai ya placeholder hai, toh Mock Mode chala do (Bina error ke test karne ke liye)
+    // Automatically detect current domain (Vercel live domain or Localhost)
+    const origin = req.headers.get('origin') || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+
+    // Agar Stripe key nahi hai ya placeholder hai, toh Mock Mode chala do
     if (!stripeKey || stripeKey.includes('sk_test_...')) {
-      const successUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/subscription?success=true`;
+      const successUrl = `${origin}/subscription?success=true`;
       return NextResponse.json({ url: successUrl });
     }
 
@@ -33,8 +36,8 @@ export async function POST(req: Request) {
         },
       ],
       mode: 'payment',
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/subscription?success=true`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/subscription?canceled=true`,
+      success_url: `${origin}/subscription?success=true`,
+      cancel_url: `${origin}/subscription?canceled=true`,
       metadata: {
         tenantId: tenantId || '',
         planName: planName || 'Pro',
