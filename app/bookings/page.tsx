@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import Link from 'next/link';
 
 // Helper to parse "YYYY-MM-DDTHH:mm" strictly as local time
 function parseLocalDateTime(dtStr: string) {
@@ -37,7 +38,7 @@ function formatDateTime(dtStr: string) {
   return `${month}/${day}/${year}, ${formattedHour}:${minutes} ${ampm}`;
 }
 
-// Original Live Countdown Timer Component (Moving continuously)
+// Live Countdown Timer Component
 function TripCountdown({ startTime, endTime }: { startTime: string; endTime: string }) {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0, isExpired: false });
 
@@ -99,6 +100,7 @@ export default function BookingsPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [tenantId, setTenantId] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<string>('admin');
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   // Modal State for Customer Agreement Form
@@ -123,13 +125,16 @@ export default function BookingsPage() {
     end_time: '',
   });
 
-  async function fetchActiveBookings() {
+  async function fetchActiveBookingsAndRole() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       setLoading(false);
       return;
     }
     setTenantId(user.id);
+    
+    const role = user.user_metadata?.role || 'admin';
+    setUserRole(role);
 
     const { data: bookingsData, error: bookingsError } = await supabase
       .from('bookings')
@@ -168,7 +173,7 @@ export default function BookingsPage() {
   }
 
   useEffect(() => {
-    fetchActiveBookings();
+    fetchActiveBookingsAndRole();
   }, []);
 
   const handleBookingSubmit = async (e: React.FormEvent) => {
@@ -226,7 +231,7 @@ export default function BookingsPage() {
         start_time: '',
         end_time: '',
       });
-      await fetchActiveBookings();
+      await fetchActiveBookingsAndRole();
     }
     setSubmitting(false);
   };
@@ -251,7 +256,7 @@ export default function BookingsPage() {
       alert('Error updating car status: ' + carError.message);
     } else {
       setDeleteConfirmId(null);
-      await fetchActiveBookings();
+      await fetchActiveBookingsAndRole();
     }
   };
 
@@ -274,11 +279,10 @@ export default function BookingsPage() {
     if (carError) {
       alert('Error updating car status: ' + carError.message);
     } else {
-      await fetchActiveBookings();
+      await fetchActiveBookingsAndRole();
     }
   };
 
-  // Open Agreement Modal
   const openAgreementModal = (booking: any) => {
     setSelectedBookingForModal(booking);
     setAgreementForm({
@@ -293,7 +297,6 @@ export default function BookingsPage() {
     setIsModalOpen(true);
   };
 
-  // Handle Agreement Form Submission
   const handleAgreementSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedBookingForModal) return;
@@ -330,99 +333,113 @@ export default function BookingsPage() {
     } else {
       setIsModalOpen(false);
       setSelectedBookingForModal(null);
-      await fetchActiveBookings();
+      await fetchActiveBookingsAndRole();
     }
     setSubmittingAgreement(false);
   };
+
+  const canCreateOrManageBooking = userRole === 'admin' || userRole === 'manager' || userRole === 'receptionist';
 
   return (
     <div className="min-h-screen bg-gray-900 text-white p-4 sm:p-8 overflow-x-hidden">
       <div className="max-w-6xl mx-auto space-y-6 sm:space-y-8">
         
-        {/* Clean Header - Navigation handled by global Navbar */}
-        <div className="border-b border-gray-800 pb-4">
-          <h1 className="text-2xl sm:text-3xl font-bold text-blue-400">Active Fleet Tracking & Agreements</h1>
-          <p className="text-xs sm:text-sm text-gray-400">Manage rentals with real-time countdown timers</p>
+        {/* Header with Navigation & History Link */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gray-800 pb-4 gap-4">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-blue-400">Active Fleet Tracking & Agreements</h1>
+            <p className="text-xs sm:text-sm text-gray-400">Manage active rentals with real-time countdown timers</p>
+          </div>
+          <div className="flex gap-3 w-full sm:w-auto justify-end">
+            <Link
+              href="/bookings/history"
+              className="bg-blue-600/90 hover:bg-blue-600 text-white text-xs sm:text-sm font-medium px-4 py-2.5 rounded-lg transition-colors border border-blue-500 shadow flex items-center gap-1.5"
+            >
+              📜 Booking History & Records
+            </Link>
+          </div>
         </div>
 
-        {/* New Booking Form */}
-        <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 sm:p-6 shadow-xl">
-          <h2 className="text-lg sm:text-xl font-semibold mb-4 text-gray-200">Create New Booking</h2>
-          <form onSubmit={handleBookingSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-xs sm:text-sm font-medium text-gray-400 mb-1">Select Available Car</label>
-              <select
-                value={formData.car_id}
-                onChange={(e) => setFormData({ ...formData, car_id: e.target.value })}
-                required
-                className="w-full bg-gray-900 border border-gray-700 rounded p-2.5 text-white text-sm focus:outline-none focus:border-blue-500 cursor-pointer"
-              >
-                <option value="">-- Choose Car --</option>
-                {cars.map((car) => (
-                  <option key={car.id} value={car.id}>
-                    {car.brand} {car.name} [{car.registration_number}] - {car.daily_rate} PKR/day
-                  </option>
-                ))}
-              </select>
-            </div>
+        {/* New Booking Form - Visible to Admin, Manager & Receptionist */}
+        {canCreateOrManageBooking && (
+          <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 sm:p-6 shadow-xl">
+            <h2 className="text-lg sm:text-xl font-semibold mb-4 text-gray-200">Create New Booking</h2>
+            <form onSubmit={handleBookingSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-xs sm:text-sm font-medium text-gray-400 mb-1">Select Available Car</label>
+                <select
+                  value={formData.car_id}
+                  onChange={(e) => setFormData({ ...formData, car_id: e.target.value })}
+                  required
+                  className="w-full bg-gray-900 border border-gray-700 rounded p-2.5 text-white text-sm focus:outline-none focus:border-blue-500 cursor-pointer"
+                >
+                  <option value="">-- Choose Car --</option>
+                  {cars.map((car) => (
+                    <option key={car.id} value={car.id}>
+                      {car.brand} {car.name} [{car.registration_number}] - {car.daily_rate} PKR/day
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-            <div>
-              <label className="block text-xs sm:text-sm font-medium text-gray-400 mb-1">Customer Name</label>
-              <input
-                type="text"
-                required
-                placeholder="e.g. Ahmed Khan"
-                value={formData.customer_name}
-                onChange={(e) => setFormData({ ...formData, customer_name: e.target.value })}
-                className="w-full bg-gray-900 border border-gray-700 rounded p-2.5 text-white text-sm focus:outline-none focus:border-blue-500"
-              />
-            </div>
+              <div>
+                <label className="block text-xs sm:text-sm font-medium text-gray-400 mb-1">Customer Name</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Ahmed Khan"
+                  value={formData.customer_name}
+                  onChange={(e) => setFormData({ ...formData, customer_name: e.target.value })}
+                  className="w-full bg-gray-900 border border-gray-700 rounded p-2.5 text-white text-sm focus:outline-none focus:border-blue-500"
+                />
+              </div>
 
-            <div>
-              <label className="block text-xs sm:text-sm font-medium text-gray-400 mb-1">Customer Phone</label>
-              <input
-                type="text"
-                required
-                placeholder="e.g. 03231234567"
-                value={formData.customer_phone}
-                onChange={(e) => setFormData({ ...formData, customer_phone: e.target.value })}
-                className="w-full bg-gray-900 border border-gray-700 rounded p-2.5 text-white text-sm focus:outline-none focus:border-blue-500"
-              />
-            </div>
+              <div>
+                <label className="block text-xs sm:text-sm font-medium text-gray-400 mb-1">Customer Phone</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. 03231234567"
+                  value={formData.customer_phone}
+                  onChange={(e) => setFormData({ ...formData, customer_phone: e.target.value })}
+                  className="w-full bg-gray-900 border border-gray-700 rounded p-2.5 text-white text-sm focus:outline-none focus:border-blue-500"
+                />
+              </div>
 
-            <div>
-              <label className="block text-xs sm:text-sm font-medium text-gray-400 mb-1">Start Date & Time</label>
-              <input
-                type="datetime-local"
-                required
-                value={formData.start_time}
-                onChange={(e) => setFormData({ ...formData, start_time: e.target.value })}
-                className="w-full bg-gray-900 border border-gray-700 rounded p-2.5 text-white text-sm focus:outline-none focus:border-blue-500 [color-scheme:dark] cursor-pointer"
-              />
-            </div>
+              <div>
+                <label className="block text-xs sm:text-sm font-medium text-gray-400 mb-1">Start Date & Time</label>
+                <input
+                  type="datetime-local"
+                  required
+                  value={formData.start_time}
+                  onChange={(e) => setFormData({ ...formData, start_time: e.target.value })}
+                  className="w-full bg-gray-900 border border-gray-700 rounded p-2.5 text-white text-sm focus:outline-none focus:border-blue-500 [color-scheme:dark] cursor-pointer"
+                />
+              </div>
 
-            <div>
-              <label className="block text-xs sm:text-sm font-medium text-gray-400 mb-1">End Date & Time</label>
-              <input
-                type="datetime-local"
-                required
-                value={formData.end_time}
-                onChange={(e) => setFormData({ ...formData, end_time: e.target.value })}
-                className="w-full bg-gray-900 border border-gray-700 rounded p-2.5 text-white text-sm focus:outline-none focus:border-blue-500 [color-scheme:dark] cursor-pointer"
-              />
-            </div>
+              <div>
+                <label className="block text-xs sm:text-sm font-medium text-gray-400 mb-1">End Date & Time</label>
+                <input
+                  type="datetime-local"
+                  required
+                  value={formData.end_time}
+                  onChange={(e) => setFormData({ ...formData, end_time: e.target.value })}
+                  className="w-full bg-gray-900 border border-gray-700 rounded p-2.5 text-white text-sm focus:outline-none focus:border-blue-500 [color-scheme:dark] cursor-pointer"
+                />
+              </div>
 
-            <div className="flex items-end">
-              <button
-                type="submit"
-                disabled={submitting}
-                className="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium p-2.5 rounded transition-colors disabled:opacity-50 cursor-pointer shadow text-sm"
-              >
-                {submitting ? 'Confirming...' : 'Confirm Booking'}
-              </button>
-            </div>
-          </form>
-        </div>
+              <div className="flex items-end">
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium p-2.5 rounded transition-colors disabled:opacity-50 cursor-pointer shadow text-sm"
+                >
+                  {submitting ? 'Confirming...' : 'Confirm Booking'}
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
 
         {/* Active Bookings Tracking List */}
         <div>
@@ -500,12 +517,15 @@ export default function BookingsPage() {
                       >
                         {b.is_signed ? '📋 View Agreement Details' : '📝 Customer Agreement Form'}
                       </button>
-                      <button
-                        onClick={() => setDeleteConfirmId(b.id)}
-                        className="text-xs bg-red-600/80 hover:bg-red-600 text-white px-2.5 py-2 rounded transition-colors cursor-pointer flex items-center gap-1 shadow font-medium"
-                      >
-                        ❌ Cancel & Delete Booking
-                      </button>
+                      
+                      {canCreateOrManageBooking && (
+                        <button
+                          onClick={() => setDeleteConfirmId(b.id)}
+                          className="text-xs bg-red-600/80 hover:bg-red-600 text-white px-2.5 py-2 rounded transition-colors cursor-pointer flex items-center gap-1 shadow font-medium"
+                        >
+                          ❌ Cancel & Delete Booking
+                        </button>
+                      )}
                     </div>
                   )}
 
@@ -518,12 +538,14 @@ export default function BookingsPage() {
                       >
                         📄 Invoice
                       </a>
-                      <button
-                        onClick={() => handleCompleteTrip(b.id, b.car_id)}
-                        className="text-xs bg-green-600 hover:bg-green-500 text-white px-3 py-1.5 rounded font-medium transition-colors cursor-pointer shadow"
-                      >
-                        ✅ Complete Trip & Return Car
-                      </button>
+                      {canCreateOrManageBooking && (
+                        <button
+                          onClick={() => handleCompleteTrip(b.id, b.car_id)}
+                          className="text-xs bg-green-600 hover:bg-green-500 text-white px-3 py-1.5 rounded font-medium transition-colors cursor-pointer shadow"
+                        >
+                          ✅ Complete Trip & Return Car
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -533,7 +555,7 @@ export default function BookingsPage() {
         </div>
       </div>
 
-      {/* Customer Agreement Modal - Fully Responsive & Scrollable */}
+      {/* Customer Agreement Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 overflow-y-auto">
           <div className="bg-gray-800 border border-gray-700 rounded-lg max-w-lg w-full p-4 sm:p-6 shadow-2xl space-y-4 my-auto max-h-[90vh] overflow-y-auto">
@@ -562,7 +584,7 @@ export default function BookingsPage() {
                 <input
                   type="text"
                   required
-                  disabled={selectedBookingForModal?.is_signed}
+                  disabled={selectedBookingForModal?.is_signed || !canCreateOrManageBooking}
                   placeholder="e.g. 35202-1234567-1"
                   value={agreementForm.cnic}
                   onChange={(e) => setAgreementForm({ ...agreementForm, cnic: e.target.value })}
@@ -575,7 +597,7 @@ export default function BookingsPage() {
                 <textarea
                   required
                   rows={2}
-                  disabled={selectedBookingForModal?.is_signed}
+                  disabled={selectedBookingForModal?.is_signed || !canCreateOrManageBooking}
                   placeholder="e.g. House #123, Street #4, Lahore"
                   value={agreementForm.address}
                   onChange={(e) => setAgreementForm({ ...agreementForm, address: e.target.value })}
@@ -587,7 +609,7 @@ export default function BookingsPage() {
                 <div>
                   <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-1">Payment Method</label>
                   <select
-                    disabled={selectedBookingForModal?.is_signed}
+                    disabled={selectedBookingForModal?.is_signed || !canCreateOrManageBooking}
                     value={agreementForm.payment_method}
                     onChange={(e) => setAgreementForm({ ...agreementForm, payment_method: e.target.value })}
                     className="w-full bg-gray-900 border border-gray-700 rounded p-2.5 text-white text-sm focus:outline-none focus:border-blue-500 disabled:opacity-70 disabled:cursor-not-allowed"
@@ -604,7 +626,7 @@ export default function BookingsPage() {
                   <input
                     type="number"
                     required
-                    disabled={selectedBookingForModal?.is_signed}
+                    disabled={selectedBookingForModal?.is_signed || !canCreateOrManageBooking}
                     placeholder="e.g. 5000"
                     value={agreementForm.advance_amount}
                     onChange={(e) => setAgreementForm({ ...agreementForm, advance_amount: e.target.value })}
@@ -622,7 +644,6 @@ export default function BookingsPage() {
                 </div>
               )}
 
-              {/* Direct Camera Capture for CNIC Front & Back */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-1">📷 CNIC Front Side</label>
@@ -630,7 +651,7 @@ export default function BookingsPage() {
                     type="file"
                     accept="image/*"
                     capture="environment"
-                    disabled={selectedBookingForModal?.is_signed}
+                    disabled={selectedBookingForModal?.is_signed || !canCreateOrManageBooking}
                     onChange={(e) => setAgreementForm({ ...agreementForm, cnic_front: e.target.files?.[0] || null })}
                     className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white text-xs file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-500 disabled:opacity-70 disabled:cursor-not-allowed"
                   />
@@ -642,7 +663,7 @@ export default function BookingsPage() {
                     type="file"
                     accept="image/*"
                     capture="environment"
-                    disabled={selectedBookingForModal?.is_signed}
+                    disabled={selectedBookingForModal?.is_signed || !canCreateOrManageBooking}
                     onChange={(e) => setAgreementForm({ ...agreementForm, cnic_back: e.target.files?.[0] || null })}
                     className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white text-xs file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-500 disabled:opacity-70 disabled:cursor-not-allowed"
                   />
@@ -653,7 +674,7 @@ export default function BookingsPage() {
                 <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-1">Additional Notes / Remarks</label>
                 <input
                   type="text"
-                  disabled={selectedBookingForModal?.is_signed}
+                  disabled={selectedBookingForModal?.is_signed || !canCreateOrManageBooking}
                   placeholder="e.g. Security deposit received"
                   value={agreementForm.notes}
                   onChange={(e) => setAgreementForm({ ...agreementForm, notes: e.target.value })}
@@ -669,7 +690,7 @@ export default function BookingsPage() {
                 >
                   Close
                 </button>
-                {!selectedBookingForModal?.is_signed && (
+                {!selectedBookingForModal?.is_signed && canCreateOrManageBooking && (
                   <button
                     type="submit"
                     disabled={submittingAgreement}
