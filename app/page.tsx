@@ -13,6 +13,9 @@ export default function DashboardPage() {
     rentedCars: 0,
   });
   const [recentBookings, setRecentBookings] = useState<any[]>([]);
+  const [dueTodayBookings, setDueTodayBookings] = useState<any[]>([]);
+  const [overdueBookings, setOverdueBookings] = useState<any[]>([]);
+  const [upcomingMaintenance, setUpcomingMaintenance] = useState<any[]>([]);
   const [userRole, setUserRole] = useState<'Owner' | 'Manager' | 'Staff'>('Owner');
   const [loading, setLoading] = useState(true);
 
@@ -43,8 +46,13 @@ export default function DashboardPage() {
       .from('cars')
       .select('*');
 
+    const { data: maintenanceData } = await supabase
+      .from('maintenance')
+      .select('*');
+
     const bookings = bookingsData || [];
     const cars = carsData || [];
+    const maintenance = maintenanceData || [];
 
     const totalEarnings = bookings.reduce((sum, b) => sum + Number(b.total_price || 0), 0);
     const totalCars = cars.length;
@@ -58,6 +66,47 @@ export default function DashboardPage() {
       availableCars,
       rentedCars,
     });
+
+    // Date calculations for alerts
+    const todayStr = new Date().toISOString().split('T')[0];
+
+    const dueToday: any[] = [];
+    const overdue: any[] = [];
+
+    bookings.forEach((b) => {
+      if (!b.end_date) return;
+      // Extract YYYY-MM-DD from start/end strings
+      const endDateOnly = b.end_date.split('T')[0];
+      const isCompletedOrReturned = b.status?.toLowerCase() === 'completed' || b.status?.toLowerCase() === 'returned';
+
+      if (!isCompletedOrReturned) {
+        const foundCar = cars.find((c) => c.id === b.car_id);
+        const enrichedBooking = {
+          ...b,
+          carName: foundCar ? `${foundCar.name} (${foundCar.model})` : 'Car Deleted',
+        };
+
+        if (endDateOnly === todayStr) {
+          dueToday.push(enrichedBooking);
+        } else if (endDateOnly < todayStr) {
+          overdue.push(enrichedBooking);
+        }
+      }
+    });
+
+    setDueTodayBookings(dueToday);
+    setOverdueBookings(overdue);
+
+    // Upcoming maintenance check (e.g., status or next service date)
+    const pendingMaintenance = maintenance.filter((m) => m.status === 'pending' || m.status === 'due');
+    const enrichedMaintenance = pendingMaintenance.map((m) => {
+      const foundCar = cars.find((c) => c.id === m.car_id);
+      return {
+        ...m,
+        carName: foundCar ? `${foundCar.name} (${foundCar.model})` : 'Vehicle',
+      };
+    });
+    setUpcomingMaintenance(enrichedMaintenance);
 
     const enrichedRecent = bookings.slice(0, 5).map((b) => {
       const foundCar = cars.find((c) => c.id === b.car_id);
@@ -96,10 +145,81 @@ export default function DashboardPage() {
 
         {loading ? (
           <div className="flex justify-center items-center py-20 text-gray-400 text-sm">
-            Loading dashboard analytics...
+            Loading dashboard analytics & alerts...
           </div>
         ) : (
           <>
+            {/* Rental Returns & Maintenance Alerts Section */}
+            {(dueTodayBookings.length > 0 || overdueBookings.length > 0 || upcomingMaintenance.length > 0) && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Due Today Alert */}
+                <div className="bg-amber-950/40 border border-amber-600/50 rounded-2xl p-5 shadow-lg space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-bold text-amber-400 flex items-center gap-2">
+                      ⏰ Due Today Returns ({dueTodayBookings.length})
+                    </h3>
+                  </div>
+                  {dueTodayBookings.length === 0 ? (
+                    <p className="text-xs text-gray-400">No cars due for return today.</p>
+                  ) : (
+                    <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
+                      {dueTodayBookings.map((b) => (
+                        <div key={b.id} className="bg-gray-900/80 border border-amber-700/40 p-2.5 rounded-xl text-xs space-y-1">
+                          <div className="font-semibold text-white">{b.customer_name}</div>
+                          <div className="text-amber-300">{b.carName}</div>
+                          <div className="text-gray-400">Phone: {b.customer_phone}</div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Overdue Bookings Alert */}
+                <div className="bg-red-950/40 border border-red-600/50 rounded-2xl p-5 shadow-lg space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-bold text-red-400 flex items-center gap-2">
+                      🚨 Overdue Bookings ({overdueBookings.length})
+                    </h3>
+                  </div>
+                  {overdueBookings.length === 0 ? (
+                    <p className="text-xs text-gray-400">No overdue bookings found.</p>
+                  ) : (
+                    <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
+                      {overdueBookings.map((b) => (
+                        <div key={b.id} className="bg-gray-900/80 border border-red-700/40 p-2.5 rounded-xl text-xs space-y-1">
+                          <div className="font-semibold text-white">{b.customer_name}</div>
+                          <div className="text-red-300">{b.carName}</div>
+                          <div className="text-gray-400">Due was: {b.end_date?.split('T')[0]}</div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Upcoming Maintenance Alert */}
+                <div className="bg-blue-950/40 border border-blue-600/50 rounded-2xl p-5 shadow-lg space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-bold text-blue-400 flex items-center gap-2">
+                      🛠️ Maintenance Due ({upcomingMaintenance.length})
+                    </h3>
+                  </div>
+                  {upcomingMaintenance.length === 0 ? (
+                    <p className="text-xs text-gray-400">All vehicles are up to date.</p>
+                  ) : (
+                    <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
+                      {upcomingMaintenance.map((m) => (
+                        <div key={m.id} className="bg-gray-900/80 border border-blue-700/40 p-2.5 rounded-xl text-xs space-y-1">
+                          <div className="font-semibold text-white">{m.carName}</div>
+                          <div className="text-blue-300">Service: {m.service_type || 'General Maintenance'}</div>
+                          <div className="text-gray-400">Cost: {m.cost} PKR</div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Stats Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
               <div className="bg-gray-800 border border-gray-700/80 rounded-2xl p-5 shadow-lg space-y-2">
