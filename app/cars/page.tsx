@@ -20,6 +20,7 @@ export default function CarsPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [tenantId, setTenantId] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<string>('admin');
 
   // Filters & Search
   const [searchTerm, setSearchTerm] = useState('');
@@ -53,33 +54,29 @@ export default function CarsPage() {
     setLoading(false);
   }
 
-  async function fetchCars() {
+  async function fetchCarsAndRole() {
     setLoading(true);
-    // Session pehle check karein taake fast load ho
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
     
-    if (sessionError || !session?.user) {
-      // Fallback to getUser if session is not immediately available
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      if (userError || !user) {
-        setLoading(false);
-        return;
-      }
-      setTenantId(user.id);
-      await loadCarsForTenant(user.id);
-    } else {
-      setTenantId(session.user.id);
-      await loadCarsForTenant(session.user.id);
+    if (userError || !user) {
+      setLoading(false);
+      return;
     }
+
+    // Fetch user role
+    const role = user.user_metadata?.role || 'admin';
+    setUserRole(role);
+    setTenantId(user.id);
+    await loadCarsForTenant(user.id);
   }
 
   useEffect(() => {
-    fetchCars();
+    fetchCarsAndRole();
 
-    // Listen to auth state changes so session updates don't miss data
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         setTenantId(session.user.id);
+        setUserRole(session.user.user_metadata?.role || 'admin');
         loadCarsForTenant(session.user.id);
       }
     });
@@ -111,7 +108,6 @@ export default function CarsPage() {
 
     setSubmitting(true);
 
-    // Auto category detection based on car name
     let cat = 'Sedan';
     const lower = formData.name.toLowerCase();
     if (lower.includes('sportage') || lower.includes('tuscon') || lower.includes('fortuner') || lower.includes('hs') || lower.includes('hr-v') || lower.includes('sorento') || lower.includes('suv')) {
@@ -178,136 +174,142 @@ export default function CarsPage() {
     return matchesSearch && matchesCategory && matchesRate;
   });
 
-  // Check if typed brand has predefined models in our map
   const typedBrandLower = formData.brand.trim().toLowerCase();
   const matchedModels = brandModelsMap[typedBrandLower] || [];
+
+  // Check if user can manage/add/delete cars (Admin or Manager only)
+  const canModifyFleet = userRole === 'admin' || userRole === 'manager';
 
   return (
     <div className="min-h-screen bg-gray-900 text-white p-4 sm:p-8">
       <div className="max-w-6xl mx-auto space-y-6 sm:space-y-8">
         
-        {/* Clean Header - Navigation handled by global Navbar */}
+        {/* Clean Header */}
         <div className="border-b border-gray-800 pb-4">
           <h1 className="text-2xl sm:text-3xl font-bold text-blue-400">Car Inventory Management</h1>
-          <p className="text-xs sm:text-sm text-gray-400">Smart Dynamic Brand & Model Auto-Suggestions</p>
+          <p className="text-xs sm:text-sm text-gray-400">
+            {canModifyFleet ? 'Smart Dynamic Brand & Model Auto-Suggestions' : 'Fleet View & Availability (Receptionist Access)'}
+          </p>
         </div>
 
-        {/* Add New Vehicle Form */}
-        <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 sm:p-6 shadow-xl">
-          <h2 className="text-lg sm:text-xl font-semibold mb-4 text-gray-200">Add New Vehicle to Fleet</h2>
-          <form onSubmit={handleAddCar} className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-              <div>
-                <label className="block text-xs font-medium text-gray-400 mb-1">Car Brand</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Toyota, Honda"
-                  value={formData.brand}
-                  onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
-                  className="w-full bg-gray-900 border border-gray-700 rounded p-2.5 text-white focus:outline-none focus:border-blue-500 text-sm"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-gray-400 mb-1">
-                  Car Name / Model Series {matchedModels.length > 0 && <span className="text-green-400 font-bold">(Suggested)</span>}
-                </label>
-                {matchedModels.length > 0 ? (
-                  <select
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full bg-gray-900 border border-gray-700 rounded p-2.5 text-white focus:outline-none focus:border-blue-500 text-sm cursor-pointer"
-                  >
-                    <option value="">-- Select Model --</option>
-                    {matchedModels.map((m) => (
-                      <option key={m} value={m}>{m}</option>
-                    ))}
-                  </select>
-                ) : (
+        {/* Add New Vehicle Form - Only Visible to Admin & Manager */}
+        {canModifyFleet && (
+          <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 sm:p-6 shadow-xl">
+            <h2 className="text-lg sm:text-xl font-semibold mb-4 text-gray-200">Add New Vehicle to Fleet</h2>
+            <form onSubmit={handleAddCar} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-gray-400 mb-1">Car Brand</label>
                   <input
                     type="text"
                     required
-                    placeholder="e.g. Corolla, Civic, Alto"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    placeholder="e.g. Toyota, Honda"
+                    value={formData.brand}
+                    onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
                     className="w-full bg-gray-900 border border-gray-700 rounded p-2.5 text-white focus:outline-none focus:border-blue-500 text-sm"
                   />
-                )}
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-gray-400 mb-1">
+                    Car Name / Model Series {matchedModels.length > 0 && <span className="text-green-400 font-bold">(Suggested)</span>}
+                  </label>
+                  {matchedModels.length > 0 ? (
+                    <select
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      className="w-full bg-gray-900 border border-gray-700 rounded p-2.5 text-white focus:outline-none focus:border-blue-500 text-sm cursor-pointer"
+                    >
+                      <option value="">-- Select Model --</option>
+                      {matchedModels.map((m) => (
+                        <option key={m} value={m}>{m}</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Corolla, Civic, Alto"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      className="w-full bg-gray-900 border border-gray-700 rounded p-2.5 text-white focus:outline-none focus:border-blue-500 text-sm"
+                    />
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-gray-400 mb-1">Registration / Number Plate</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. LEB-1234"
+                    value={formData.registration_number}
+                    onChange={(e) => handleRegNumberChange(e.target.value)}
+                    className="w-full bg-gray-900 border border-gray-700 rounded p-2.5 text-white focus:outline-none focus:border-blue-500 text-sm font-mono uppercase"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-gray-400 mb-1">Color</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. White, Black"
+                    value={formData.color}
+                    onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+                    className="w-full bg-gray-900 border border-gray-700 rounded p-2.5 text-white focus:outline-none focus:border-blue-500 text-sm"
+                  />
+                </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-medium text-gray-400 mb-1">Registration / Number Plate</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. LEB-1234"
-                  value={formData.registration_number}
-                  onChange={(e) => handleRegNumberChange(e.target.value)}
-                  className="w-full bg-gray-900 border border-gray-700 rounded p-2.5 text-white focus:outline-none focus:border-blue-500 text-sm font-mono uppercase"
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-gray-400 mb-1">Model Year</label>
+                  <select
+                    value={formData.model}
+                    onChange={(e) => setFormData({ ...formData, model: e.target.value })}
+                    className="w-full bg-gray-900 border border-gray-700 rounded p-2.5 text-white focus:outline-none focus:border-blue-500 text-sm cursor-pointer"
+                  >
+                    {Array.from({ length: 15 }, (_, i) => 2026 - i).map((year) => (
+                      <option key={year} value={year}>{year}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-gray-400 mb-1">Daily Rate (PKR)</label>
+                  <input
+                    type="number"
+                    required
+                    placeholder="e.g. 5000"
+                    value={formData.daily_rate}
+                    onChange={(e) => setFormData({ ...formData, daily_rate: e.target.value })}
+                    className="w-full bg-gray-900 border border-gray-700 rounded p-2.5 text-white focus:outline-none focus:border-blue-500 text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-gray-400 mb-1">Initial Status</label>
+                  <select
+                    value={formData.status}
+                    onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                    className="w-full bg-gray-900 border border-gray-700 rounded p-2.5 text-white focus:outline-none focus:border-blue-500 text-sm cursor-pointer"
+                  >
+                    <option value="available">Available</option>
+                    <option value="maintenance">Under Maintenance</option>
+                  </select>
+                </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-medium text-gray-400 mb-1">Color</label>
-                <input
-                  type="text"
-                  placeholder="e.g. White, Black"
-                  value={formData.color}
-                  onChange={(e) => setFormData({ ...formData, color: e.target.value })}
-                  className="w-full bg-gray-900 border border-gray-700 rounded p-2.5 text-white focus:outline-none focus:border-blue-500 text-sm"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-xs font-medium text-gray-400 mb-1">Model Year</label>
-                <select
-                  value={formData.model}
-                  onChange={(e) => setFormData({ ...formData, model: e.target.value })}
-                  className="w-full bg-gray-900 border border-gray-700 rounded p-2.5 text-white focus:outline-none focus:border-blue-500 text-sm cursor-pointer"
-                >
-                  {Array.from({ length: 15 }, (_, i) => 2026 - i).map((year) => (
-                    <option key={year} value={year}>{year}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-gray-400 mb-1">Daily Rate (PKR)</label>
-                <input
-                  type="number"
-                  required
-                  placeholder="e.g. 5000"
-                  value={formData.daily_rate}
-                  onChange={(e) => setFormData({ ...formData, daily_rate: e.target.value })}
-                  className="w-full bg-gray-900 border border-gray-700 rounded p-2.5 text-white focus:outline-none focus:border-blue-500 text-sm"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-gray-400 mb-1">Initial Status</label>
-                <select
-                  value={formData.status}
-                  onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                  className="w-full bg-gray-900 border border-gray-700 rounded p-2.5 text-white focus:outline-none focus:border-blue-500 text-sm cursor-pointer"
-                >
-                  <option value="available">Available</option>
-                  <option value="maintenance">Under Maintenance</option>
-                </select>
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={submitting}
-              className="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium p-2.5 rounded transition-colors disabled:opacity-50 cursor-pointer shadow text-sm"
-            >
-              {submitting ? 'Adding Vehicle...' : '+ Add Vehicle to Fleet'}
-            </button>
-          </form>
-        </div>
+              <button
+                type="submit"
+                disabled={submitting}
+                className="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium p-2.5 rounded transition-colors disabled:opacity-50 cursor-pointer shadow text-sm"
+              >
+                {submitting ? 'Adding Vehicle...' : '+ Add Vehicle to Fleet'}
+              </button>
+            </form>
+          </div>
+        )}
 
         {/* Fleet List Display */}
         <div>
@@ -366,12 +368,15 @@ export default function CarsPage() {
                     <span className="text-green-400 font-bold text-sm">
                       {car.daily_rate} PKR / day
                     </span>
-                    <button
-                      onClick={() => handleDeleteCar(car.id)}
-                      className="text-xs bg-red-600/80 hover:bg-red-600 text-white px-2.5 py-1.5 rounded transition-colors cursor-pointer font-medium shadow"
-                    >
-                      Delete
-                    </button>
+                    {/* Delete button only visible to Admin & Manager */}
+                    {canModifyFleet && (
+                      <button
+                        onClick={() => handleDeleteCar(car.id)}
+                        className="text-xs bg-red-600/80 hover:bg-red-600 text-white px-2.5 py-1.5 rounded transition-colors cursor-pointer font-medium shadow"
+                      >
+                        Delete
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}

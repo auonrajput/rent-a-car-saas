@@ -16,7 +16,7 @@ interface TeamMember {
   id: string;
   full_name: string;
   email: string;
-  role: 'admin' | 'manager' | 'staff';
+  role: 'admin' | 'manager' | 'receptionist' | 'driver';
   created_at?: string;
 }
 
@@ -26,7 +26,7 @@ export default function TenantSettingsPage() {
   const [message, setMessage] = useState('');
   
   // Current User Role state
-  const [currentUserRole, setCurrentUserRole] = useState<'admin' | 'manager' | 'staff'>('admin');
+  const [currentUserRole, setCurrentUserRole] = useState<string>('admin');
   
   const [tenantId, setTenantId] = useState('');
   const [formData, setFormData] = useState({
@@ -45,7 +45,7 @@ export default function TenantSettingsPage() {
     fullName: '',
     email: '',
     password: '',
-    role: 'staff' as 'manager' | 'staff',
+    role: 'receptionist' as 'manager' | 'receptionist' | 'driver',
   });
 
   async function fetchTenantSettingsAndTeam() {
@@ -55,7 +55,6 @@ export default function TenantSettingsPage() {
       return;
     }
 
-    // Role check from user metadata or profiles table
     const role = user.user_metadata?.role || 'admin';
     setCurrentUserRole(role);
 
@@ -167,7 +166,7 @@ export default function TenantSettingsPage() {
       }
 
       setMemberMessage(`Success! ${memberForm.role.toUpperCase()} account created.`);
-      setMemberForm({ fullName: '', email: '', password: '', role: 'staff' });
+      setMemberForm({ fullName: '', email: '', password: '', role: 'receptionist' });
       fetchTenantSettingsAndTeam();
     }
 
@@ -182,7 +181,7 @@ export default function TenantSettingsPage() {
     );
   }
 
-  // Restrict Team Management visibility
+  // Restrict Team Management visibility (Only Admin and Manager)
   const canManageTeam = currentUserRole === 'admin' || currentUserRole === 'manager';
 
   return (
@@ -211,81 +210,83 @@ export default function TenantSettingsPage() {
           </div>
         )}
 
-        {/* General Business Settings */}
-        <div className="bg-gray-800 border border-gray-700 rounded-2xl p-5 sm:p-8 shadow-xl">
-          <h2 className="text-lg font-semibold text-gray-200 mb-4 border-b border-gray-700 pb-2">Agency Details</h2>
-          <form onSubmit={handleSave} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-400 mb-2">Agency / Business Name</label>
-                <input
-                  type="text"
-                  required
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-blue-500 text-sm"
-                  placeholder="e.g. Royal Rent A Car"
-                />
+        {/* General Business Settings (Restricted to Admin / Manager) */}
+        {canManageTeam && (
+          <div className="bg-gray-800 border border-gray-700 rounded-2xl p-5 sm:p-8 shadow-xl">
+            <h2 className="text-lg font-semibold text-gray-200 mb-4 border-b border-gray-700 pb-2">Agency Details</h2>
+            <form onSubmit={handleSave} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-400 mb-2">Agency / Business Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-blue-500 text-sm"
+                    placeholder="e.g. Royal Rent A Car"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-400 mb-2">Contact Phone Number</label>
+                  <input
+                    type="text"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    className="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-blue-500 text-sm"
+                    placeholder="e.g. +92 300 1234567"
+                  />
+                </div>
               </div>
 
-              <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-400 mb-2">Contact Phone Number</label>
-                <input
-                  type="text"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-blue-500 text-sm"
-                  placeholder="e.g. +92 300 1234567"
-                />
-              </div>
-            </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-400 mb-2">Default Currency</label>
+                  <select
+                    value={formData.currency}
+                    onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
+                    className="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-blue-500 text-sm cursor-pointer"
+                  >
+                    {CURRENCIES.map((c) => (
+                      <option key={c.code} value={c.code}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-400 mb-2">Default Currency</label>
-                <select
-                  value={formData.currency}
-                  onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
-                  className="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-blue-500 text-sm cursor-pointer"
+                <div>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-400 mb-2">Business Address</label>
+                  <input
+                    type="text"
+                    value={formData.address}
+                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                    className="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-blue-500 text-sm"
+                    placeholder="e.g. Main Boulevard, Lahore, Pakistan"
+                  />
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-gray-700 flex justify-end">
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="w-full sm:w-auto bg-blue-600 hover:bg-blue-500 text-white font-semibold px-6 py-2.5 rounded-lg transition-colors shadow disabled:opacity-50 text-sm cursor-pointer"
                 >
-                  {CURRENCIES.map((c) => (
-                    <option key={c.code} value={c.code}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
+                  {saving ? 'Saving Changes...' : 'Save Settings'}
+                </button>
               </div>
-
-              <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-400 mb-2">Business Address</label>
-                <input
-                  type="text"
-                  value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  className="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-blue-500 text-sm"
-                  placeholder="e.g. Main Boulevard, Lahore, Pakistan"
-                />
-              </div>
-            </div>
-
-            <div className="pt-4 border-t border-gray-700 flex justify-end">
-              <button
-                type="submit"
-                disabled={saving}
-                className="w-full sm:w-auto bg-blue-600 hover:bg-blue-500 text-white font-semibold px-6 py-2.5 rounded-lg transition-colors shadow disabled:opacity-50 text-sm cursor-pointer"
-              >
-                {saving ? 'Saving Changes...' : 'Save Settings'}
-              </button>
-            </div>
-          </form>
-        </div>
+            </form>
+          </div>
+        )}
 
         {/* TEAM MANAGEMENT SECTION (Visible only to Admin / Manager) */}
         {canManageTeam && (
           <div className="bg-gray-800 border border-gray-700 rounded-2xl p-5 sm:p-8 shadow-xl space-y-6">
             <div className="border-b border-gray-700 pb-3">
               <h2 className="text-lg font-semibold text-gray-200">👥 Team Management & Staff Roles</h2>
-              <p className="text-xs text-gray-400">Create accounts for managers and staff with explicit credential access.</p>
+              <p className="text-xs text-gray-400">Create accounts for managers, receptionists, and drivers with explicit credential access.</p>
             </div>
 
             {memberMessage && (
@@ -350,11 +351,12 @@ export default function TenantSettingsPage() {
                   <label className="block text-xs font-medium text-gray-400 mb-1">Role Permission</label>
                   <select
                     value={memberForm.role}
-                    onChange={(e) => setMemberForm({ ...memberForm, role: e.target.value as 'manager' | 'staff' })}
+                    onChange={(e) => setMemberForm({ ...memberForm, role: e.target.value as any })}
                     className="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-blue-500 text-sm cursor-pointer"
                   >
-                    <option value="staff">Staff (Limited Access)</option>
+                    <option value="receptionist">Receptionist (Bookings & CRM)</option>
                     <option value="manager">Manager (Full Operational Access)</option>
+                    <option value="driver">Driver (Trips & Maintenance)</option>
                   </select>
                 </div>
               </div>
@@ -384,7 +386,9 @@ export default function TenantSettingsPage() {
                       <span className={`px-2.5 py-1 rounded text-[10px] font-bold uppercase border ${
                         member.role === 'manager' 
                           ? 'bg-purple-900/50 text-purple-300 border-purple-700' 
-                          : 'bg-blue-900/50 text-blue-300 border-blue-700'
+                          : member.role === 'receptionist'
+                          ? 'bg-blue-900/50 text-blue-300 border-blue-700'
+                          : 'bg-amber-900/50 text-amber-300 border-amber-700'
                       }`}>
                         {member.role}
                       </span>
