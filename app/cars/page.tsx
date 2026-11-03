@@ -38,18 +38,11 @@ export default function CarsPage() {
     status: 'available',
   });
 
-  async function fetchCars() {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      setLoading(false);
-      return;
-    }
-    setTenantId(user.id);
-
+  async function loadCarsForTenant(uid: string) {
     const { data, error } = await supabase
       .from('cars')
       .select('*')
-      .eq('tenant_id', user.id)
+      .eq('tenant_id', uid)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -60,8 +53,40 @@ export default function CarsPage() {
     setLoading(false);
   }
 
+  async function fetchCars() {
+    setLoading(true);
+    // Session pehle check karein taake fast load ho
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    
+    if (sessionError || !session?.user) {
+      // Fallback to getUser if session is not immediately available
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) {
+        setLoading(false);
+        return;
+      }
+      setTenantId(user.id);
+      await loadCarsForTenant(user.id);
+    } else {
+      setTenantId(session.user.id);
+      await loadCarsForTenant(session.user.id);
+    }
+  }
+
   useEffect(() => {
     fetchCars();
+
+    // Listen to auth state changes so session updates don't miss data
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        setTenantId(session.user.id);
+        loadCarsForTenant(session.user.id);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   // Auto-format Registration Number: e.g. LEB-1234
@@ -123,7 +148,7 @@ export default function CarsPage() {
         daily_rate: '',
         status: 'available',
       });
-      await fetchCars();
+      await loadCarsForTenant(tenantId);
     }
     setSubmitting(false);
   };
@@ -136,7 +161,7 @@ export default function CarsPage() {
     if (error) {
       alert('Error deleting vehicle: ' + error.message);
     } else {
-      await fetchCars();
+      if (tenantId) await loadCarsForTenant(tenantId);
     }
   };
 
