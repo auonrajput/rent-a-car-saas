@@ -42,10 +42,44 @@ export default function Navbar() {
           </span>
         </Link>
 
-        {/* Hamburger Toggle Button */}
+        {/* Desktop Navigation Row (Visible on Laptop/Desktop Screens) */}
+        <nav className="hidden md:flex items-center space-x-1 lg:space-x-2 text-xs lg:text-sm font-medium">
+          <Link href="/" className="py-1.5 px-2.5 hover:bg-slate-800 rounded-md transition-colors">📊 Dashboard</Link>
+          
+          {(role === 'admin' || role === 'manager' || role === 'receptionist') && (
+            <Link href="/cars" className="py-1.5 px-2.5 hover:bg-slate-800 rounded-md transition-colors">🚗 Cars Inventory</Link>
+          )}
+
+          <Link href="/bookings" className="py-1.5 px-2.5 hover:bg-slate-800 rounded-md transition-colors">📜 Bookings & Fleet</Link>
+
+          {(role === 'admin' || role === 'manager' || role === 'receptionist') && (
+            <Link href="/customers" className="py-1.5 px-2.5 hover:bg-slate-800 rounded-md transition-colors">👥 CRM</Link>
+          )}
+
+          {(role === 'admin' || role === 'manager' || role === 'driver') && (
+            <Link href="/maintenance" className="py-1.5 px-2.5 hover:bg-slate-800 rounded-md transition-colors">🛠️ Maintenance</Link>
+          )}
+
+          {(role === 'admin' || role === 'manager') && (
+            <Link href="/subscription" className="py-1.5 px-2.5 hover:bg-slate-800 rounded-md transition-colors">💳 Subscription</Link>
+          )}
+
+          {(role === 'admin' || role === 'manager') && (
+            <Link href="/settings" className="py-1.5 px-2.5 hover:bg-slate-800 rounded-md transition-colors">⚙️ Settings</Link>
+          )}
+
+          <button
+            onClick={handleLogout}
+            className="ml-2 bg-red-900/40 hover:bg-red-800 text-red-300 border border-red-700 px-3 py-1.5 rounded-md transition-colors cursor-pointer text-xs flex items-center gap-1"
+          >
+            🚪 Logout
+          </button>
+        </nav>
+
+        {/* Hamburger Toggle Button (Visible only on Mobile Screens) */}
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-800 text-slate-200 hover:bg-slate-700 border border-slate-700 focus:outline-none cursor-pointer text-xs sm:text-sm font-medium"
+          className="md:hidden flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-800 text-slate-200 hover:bg-slate-700 border border-slate-700 focus:outline-none cursor-pointer text-xs sm:text-sm font-medium"
           aria-label="Toggle Menu"
         >
           <span>Menu</span>
@@ -59,9 +93,9 @@ export default function Navbar() {
         </button>
       </div>
 
-      {/* Dropdown Menu - Role Filtered Links */}
+      {/* Dropdown Menu - Role Filtered Links (Mobile Dropdown Only) */}
       {isOpen && (
-        <nav className="bg-slate-900 border-t border-slate-800 px-4 py-3 space-y-1.5 text-sm font-medium shadow-2xl">
+        <nav className="md:hidden bg-slate-900 border-t border-slate-800 px-4 py-3 space-y-1.5 text-sm font-medium shadow-2xl">
           <Link href="/" onClick={() => setIsOpen(false)} className="block py-2 px-3 hover:bg-slate-800 rounded-md">📊 Dashboard</Link>
           
           {(role === 'admin' || role === 'manager' || role === 'receptionist') && (
