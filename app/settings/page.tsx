@@ -12,12 +12,23 @@ const CURRENCIES = [
   { code: 'GBP', name: 'British Pound (GBP)' },
 ];
 
+interface TeamMember {
+  id: string;
+  full_name: string;
+  email: string;
+  role: 'admin' | 'manager' | 'staff';
+  created_at?: string;
+}
+
 export default function TenantSettingsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
   
-  const [tenantId, setTenantId] = useState('a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d'); // Fallback demo tenant ID
+  // Current User Role state
+  const [currentUserRole, setCurrentUserRole] = useState<'admin' | 'manager' | 'staff'>('admin');
+  
+  const [tenantId, setTenantId] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -25,15 +36,37 @@ export default function TenantSettingsPage() {
     currency: 'PKR',
   });
 
-  async function fetchTenantSettings() {
-    // Supabase se tenant settings fetch karein
+  // Team Member Form State
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const [addingMember, setAddingMember] = useState(false);
+  const [memberMessage, setMemberMessage] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [memberForm, setMemberForm] = useState({
+    fullName: '',
+    email: '',
+    password: '',
+    role: 'staff' as 'manager' | 'staff',
+  });
+
+  async function fetchTenantSettingsAndTeam() {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
+    // Role check from user metadata or profiles table
+    const role = user.user_metadata?.role || 'admin';
+    setCurrentUserRole(role);
+
+    // Fetch tenant settings
     const { data, error } = await supabase
       .from('tenants')
       .select('*')
-      .limit(1)
+      .eq('id', user.id)
       .single();
 
-    if (error) {
+    if (error && error.code !== 'PGRST116') {
       console.error('Error fetching tenant:', error);
     } else if (data) {
       setTenantId(data.id);
@@ -44,11 +77,22 @@ export default function TenantSettingsPage() {
         currency: data.currency || 'PKR',
       });
     }
+
+    // Fetch Team Members list
+    const { data: teamData } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('tenant_id', user.id);
+
+    if (teamData) {
+      setTeamMembers(teamData);
+    }
+
     setLoading(false);
   }
 
   useEffect(() => {
-    fetchTenantSettings();
+    fetchTenantSettingsAndTeam();
   }, []);
 
   const handleSave = async (e: React.FormEvent) => {
@@ -58,13 +102,13 @@ export default function TenantSettingsPage() {
 
     const { error } = await supabase
       .from('tenants')
-      .update({
+      .upsert({
+        id: tenantId,
         name: formData.name,
         phone: formData.phone,
         address: formData.address,
         currency: formData.currency,
-      })
-      .eq('id', tenantId);
+      });
 
     if (error) {
       setMessage('Error updating settings: ' + error.message);
@@ -72,6 +116,62 @@ export default function TenantSettingsPage() {
       setMessage('Business settings updated successfully!');
     }
     setSaving(false);
+  };
+
+  const handleAddTeamMember = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAddingMember(true);
+    setMemberMessage('');
+
+    // 1. Password validation
+    const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{6,}$/;
+    if (!passwordRegex.test(memberForm.password)) {
+      setMemberMessage('Password must contain letters, numbers, and special characters!');
+      setAddingMember(false);
+      return;
+    }
+
+    // 2. Create user in Supabase Auth
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email: memberForm.email,
+      password: memberForm.password,
+      options: {
+        data: {
+          full_name: memberForm.fullName,
+          role: memberForm.role,
+          tenant_id: tenantId,
+        },
+      },
+    });
+
+    if (authError) {
+      setMemberMessage('Error creating member: ' + authError.message);
+      setAddingMember(false);
+      return;
+    }
+
+    // 3. Save profile record for Team listing
+    if (authData.user) {
+      const { error: profileError } = await supabase.from('profiles').insert([
+        {
+          id: authData.user.id,
+          tenant_id: tenantId,
+          full_name: memberForm.fullName,
+          email: memberForm.email,
+          role: memberForm.role,
+        },
+      ]);
+
+      if (profileError) {
+        console.error('Profile log error:', profileError.message);
+      }
+
+      setMemberMessage(`Success! ${memberForm.role.toUpperCase()} account created.`);
+      setMemberForm({ fullName: '', email: '', password: '', role: 'staff' });
+      fetchTenantSettingsAndTeam();
+    }
+
+    setAddingMember(false);
   };
 
   if (loading) {
@@ -82,11 +182,14 @@ export default function TenantSettingsPage() {
     );
   }
 
+  // Restrict Team Management visibility
+  const canManageTeam = currentUserRole === 'admin' || currentUserRole === 'manager';
+
   return (
     <div className="min-h-screen bg-gray-900 text-white p-4 sm:p-8">
       <div className="max-w-4xl mx-auto space-y-6 sm:space-y-8">
         
-        {/* Header Section - Responsive Flex-Wrap */}
+        {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gray-800 pb-4 gap-4">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-blue-400">Business Settings & Profile</h1>
@@ -108,7 +211,9 @@ export default function TenantSettingsPage() {
           </div>
         )}
 
+        {/* General Business Settings */}
         <div className="bg-gray-800 border border-gray-700 rounded-2xl p-5 sm:p-8 shadow-xl">
+          <h2 className="text-lg font-semibold text-gray-200 mb-4 border-b border-gray-700 pb-2">Agency Details</h2>
           <form onSubmit={handleSave} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
@@ -174,6 +279,123 @@ export default function TenantSettingsPage() {
             </div>
           </form>
         </div>
+
+        {/* TEAM MANAGEMENT SECTION (Visible only to Admin / Manager) */}
+        {canManageTeam && (
+          <div className="bg-gray-800 border border-gray-700 rounded-2xl p-5 sm:p-8 shadow-xl space-y-6">
+            <div className="border-b border-gray-700 pb-3">
+              <h2 className="text-lg font-semibold text-gray-200">👥 Team Management & Staff Roles</h2>
+              <p className="text-xs text-gray-400">Create accounts for managers and staff with explicit credential access.</p>
+            </div>
+
+            {memberMessage && (
+              <div className="p-3 rounded bg-blue-900/40 border border-blue-700 text-xs sm:text-sm text-blue-300 text-center">
+                {memberMessage}
+              </div>
+            )}
+
+            {/* Add Team Member Form */}
+            <form onSubmit={handleAddTeamMember} className="space-y-4 bg-gray-900/60 p-4 rounded-xl border border-gray-700/80">
+              <h3 className="text-sm font-medium text-blue-300">Add New Team Member</h3>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-gray-400 mb-1">Full Name</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Ali Hassan"
+                    value={memberForm.fullName}
+                    onChange={(e) => setMemberForm({ ...memberForm, fullName: e.target.value })}
+                    className="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-blue-500 text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-gray-400 mb-1">Email Address</label>
+                  <input
+                    type="email"
+                    required
+                    placeholder="staff@agency.com"
+                    value={memberForm.email}
+                    onChange={(e) => setMemberForm({ ...memberForm, email: e.target.value })}
+                    className="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-blue-500 text-sm"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-gray-400 mb-1">Assign Password</label>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      placeholder="••••••••"
+                      value={memberForm.password}
+                      onChange={(e) => setMemberForm({ ...memberForm, password: e.target.value })}
+                      className="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 pr-10 text-white focus:outline-none focus:border-blue-500 text-sm"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-2.5 text-gray-400 hover:text-white text-xs"
+                    >
+                      {showPassword ? '👁️‍🗨️' : '👁️'}
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-gray-400 mb-1">Role Permission</label>
+                  <select
+                    value={memberForm.role}
+                    onChange={(e) => setMemberForm({ ...memberForm, role: e.target.value as 'manager' | 'staff' })}
+                    className="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-blue-500 text-sm cursor-pointer"
+                  >
+                    <option value="staff">Staff (Limited Access)</option>
+                    <option value="manager">Manager (Full Operational Access)</option>
+                  </select>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={addingMember}
+                className="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium p-2.5 rounded-lg transition-colors text-sm shadow cursor-pointer disabled:opacity-50"
+              >
+                {addingMember ? 'Creating Account...' : '+ Add Team Member Account'}
+              </button>
+            </form>
+
+            {/* Existing Team Members List */}
+            <div className="space-y-3 pt-2">
+              <h3 className="text-sm font-medium text-gray-300">Existing Team Accounts ({teamMembers.length})</h3>
+              {teamMembers.length === 0 ? (
+                <p className="text-xs text-gray-500 italic">No secondary team members added yet.</p>
+              ) : (
+                <div className="space-y-2">
+                  {teamMembers.map((member) => (
+                    <div key={member.id} className="bg-gray-900/80 border border-gray-700/70 p-3 rounded-lg flex items-center justify-between text-xs sm:text-sm">
+                      <div>
+                        <p className="font-semibold text-gray-200">{member.full_name}</p>
+                        <p className="text-gray-400 text-xs">{member.email}</p>
+                      </div>
+                      <span className={`px-2.5 py-1 rounded text-[10px] font-bold uppercase border ${
+                        member.role === 'manager' 
+                          ? 'bg-purple-900/50 text-purple-300 border-purple-700' 
+                          : 'bg-blue-900/50 text-blue-300 border-blue-700'
+                      }`}>
+                        {member.role}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   );
