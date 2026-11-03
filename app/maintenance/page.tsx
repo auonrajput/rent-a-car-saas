@@ -15,9 +15,17 @@ export default function MaintenancePage() {
     car_id: '',
     category: 'Oil Change',
     cost: '',
-    maintenance_date: new Date().toISOString().split('T')[0],
+    maintenance_date: '',
     notes: '',
   });
+
+  useEffect(() => {
+    // Set default date on client mount to avoid prerender instability
+    setFormData((prev) => ({
+      ...prev,
+      maintenance_date: new Date().toISOString().split('T')[0],
+    }));
+  }, []);
 
   async function fetchData() {
     const { data: { user } } = await supabase.auth.getUser();
@@ -29,7 +37,6 @@ export default function MaintenancePage() {
     const role = user.user_metadata?.role || 'admin';
     setUserRole(role);
 
-    // Fetch tenant-specific maintenance logs
     const { data: logsData, error: logsError } = await supabase
       .from('maintenance')
       .select('*')
@@ -40,7 +47,6 @@ export default function MaintenancePage() {
       console.error('Error fetching maintenance logs:', logsError);
     }
 
-    // Fetch tenant-specific cars
     const { data: carsData, error: carsError } = await supabase
       .from('cars')
       .select('*')
@@ -121,7 +127,6 @@ export default function MaintenancePage() {
     <div className="min-h-screen bg-gray-900 text-white p-4 sm:p-8">
       <div className="max-w-6xl mx-auto space-y-6 sm:space-y-8">
         
-        {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gray-800 pb-4 gap-4">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-blue-400">Fleet Maintenance & Expense Log</h1>
@@ -135,7 +140,6 @@ export default function MaintenancePage() {
           </Link>
         </div>
 
-        {/* Add Maintenance Form */}
         {canManage && (
           <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 sm:p-6 shadow-xl">
             <h2 className="text-lg sm:text-xl font-semibold mb-4 text-gray-200">Add Maintenance / Expense Record</h2>
@@ -219,7 +223,6 @@ export default function MaintenancePage() {
           </div>
         )}
 
-        {/* Logs List */}
         <div>
           <h2 className="text-lg sm:text-xl font-semibold mb-4 text-gray-200">Maintenance & Expense History ({logs.length})</h2>
           {loading ? (
