@@ -2,14 +2,9 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
-  const pathname = usePathname();
-
-  // Login ya Signup page par navbar hide rahega
-  if (pathname === '/login' || pathname === '/signup') return null;
 
   return (
     <header className="w-full bg-slate-900 border-b border-slate-800 text-white sticky top-0 z-50 shadow-xl">
@@ -22,7 +17,7 @@ export default function Navbar() {
           </span>
         </Link>
 
-        {/* Hamburger Toggle Button - Sab screens par ek jaisa clean menu */}
+        {/* Hamburger Toggle Button */}
         <button
           onClick={() => setIsOpen(!isOpen)}
           className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-800 text-slate-200 hover:bg-slate-700 border border-slate-700 focus:outline-none cursor-pointer text-xs sm:text-sm font-medium"
@@ -39,7 +34,7 @@ export default function Navbar() {
         </button>
       </div>
 
-      {/* Dropdown Menu - Saare pages yahan honge */}
+      {/* Dropdown Menu */}
       {isOpen && (
         <nav className="bg-slate-900 border-t border-slate-800 px-4 py-3 space-y-1.5 text-sm font-medium shadow-2xl">
           <Link href="/" onClick={() => setIsOpen(false)} className="block py-2 px-3 hover:bg-slate-800 rounded-md">📊 Dashboard</Link>
