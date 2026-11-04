@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 
+export const dynamic = 'force-dynamic';
+
 export default function CustomerTrackPage() {
   const params = useParams();
   const token = params?.token as string;
