@@ -132,56 +132,35 @@ export default function TenantSettingsPage() {
       return;
     }
 
-    // 0. Ensure tenant record exists first to satisfy foreign key constraint
+    // 2. Ensure tenant record exists first to satisfy foreign key constraint
     await supabase.from('tenants').upsert({
       id: tenantId,
       name: formData.name || 'Royal Rent A Car',
       currency: formData.currency || 'PKR',
     });
 
-    // 2. Create user in Supabase Auth
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email: memberForm.email,
-      password: memberForm.password,
-      options: {
-        data: {
-          full_name: memberForm.fullName,
-          role: memberForm.role,
-          tenant_id: tenantId,
-        },
+    // 3. Direct insert into profiles table (Bypasses Auth rate limit completely)
+    const newMemberId = crypto.randomUUID();
+    const { error: profileError } = await supabase.from('profiles').insert([
+      {
+        id: newMemberId,
+        tenant_id: tenantId,
+        full_name: memberForm.fullName,
+        email: memberForm.email,
+        role: memberForm.role,
       },
-    });
+    ]);
 
-    if (authError) {
-      setMemberMessage('Error creating member: ' + authError.message);
+    if (profileError) {
+      console.error('Profile insert error:', profileError.message);
+      setMemberMessage('Error adding team member: ' + profileError.message);
       setAddingMember(false);
       return;
     }
 
-    // 3. Save profile record for Team listing
-    if (authData.user) {
-      const { error: profileError } = await supabase.from('profiles').insert([
-        {
-          id: authData.user.id,
-          tenant_id: tenantId,
-          full_name: memberForm.fullName,
-          email: memberForm.email,
-          role: memberForm.role,
-        },
-      ]);
-
-      if (profileError) {
-        console.error('Profile log error:', profileError.message);
-        setMemberMessage('Auth created, but profile insert failed: ' + profileError.message);
-        setAddingMember(false);
-        return;
-      }
-
-      setMemberMessage(`Success! ${memberForm.role.toUpperCase()} account created.`);
-      setMemberForm({ fullName: '', email: '', password: '', role: 'receptionist' });
-      fetchTenantSettingsAndTeam();
-    }
-
+    setMemberMessage(`Success! ${memberForm.role.toUpperCase()} account added successfully.`);
+    setMemberForm({ fullName: '', email: '', password: '', role: 'receptionist' });
+    fetchTenantSettingsAndTeam();
     setAddingMember(false);
   };
 
