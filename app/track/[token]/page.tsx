@@ -1,9 +1,64 @@
 'use client';
 
-import { Suspense } from 'react';
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+
+// Fix Leaflet default marker icon issue in Next.js
+if (typeof window !== 'undefined') {
+  delete (L.Icon.Default.prototype as any)._getIconUrl;
+  L.Icon.Default.mergeOptions({
+    iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+    iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+    shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+  });
+}
+
+// Interactive Leaflet Map Component
+function LiveMap({ lat, lng, carTitle }: { lat: number; lng: number; carTitle: string }) {
+  const mapRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<L.Map | null>(null);
+  const markerRef = useRef<L.Marker | null>(null);
+
+  useEffect(() => {
+    if (!mapRef.current) return;
+
+    if (!mapInstanceRef.current) {
+      const map = L.map(mapRef.current).setView([lat, lng], 15);
+      
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(map);
+
+      const marker = L.marker([lat, lng]).addTo(map)
+        .bindPopup(`<b>${carTitle}</b><br />Live Location`)
+        .openPopup();
+
+      mapInstanceRef.current = map;
+      markerRef.current = marker;
+    }
+
+    return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+    };
+  }, []);
+
+  // Update marker position and pan map smoothly on coordinate change
+  useEffect(() => {
+    if (mapInstanceRef.current && markerRef.current) {
+      markerRef.current.setLatLng([lat, lng]);
+      mapInstanceRef.current.setView([lat, lng], mapInstanceRef.current.getZoom(), { animate: true });
+    }
+  }, [lat, lng]);
+
+  return <div ref={mapRef} className="w-full h-64 rounded-xl z-0 border border-gray-700 shadow-inner my-2" />;
+}
 
 function TrackingContent() {
   const params = useParams();
@@ -101,6 +156,11 @@ function TrackingContent() {
     return () => navigator.geolocation.clearWatch(watchId);
   };
 
+  const carTitle = booking?.cars ? `${booking.cars.brand} ${booking.cars.name}` : 'Rental Vehicle';
+  // Default fallback center (e.g. Karachi) if GPS hasn't locked yet
+  const defaultLat = currentCoords?.lat || 24.8607;
+  const defaultLng = currentCoords?.lng || 67.0011;
+
   return (
     <div className="min-h-screen bg-gray-950 text-white flex flex-col items-center justify-center p-4">
       <div className="max-w-md w-full bg-gray-900 border border-gray-800 rounded-2xl p-6 shadow-2xl space-y-6 text-center">
@@ -124,14 +184,14 @@ function TrackingContent() {
             <div className="bg-gray-800/80 p-4 rounded-xl border border-gray-700 text-left space-y-1">
               <p className="text-xs text-gray-400 uppercase font-semibold">Assigned Vehicle</p>
               <h3 className="text-base font-bold text-blue-300">
-                {booking?.cars?.brand} {booking?.cars?.name}
+                {carTitle}
               </h3>
               <p className="text-xs font-mono text-amber-300">
                 Reg: {booking?.cars?.registration_number}
               </p>
             </div>
 
-            {/* Tracking Controls */}
+            {/* Tracking Controls & Interactive Map */}
             {isTracking ? (
               <div className="bg-emerald-950/50 border border-emerald-700 p-4 rounded-xl space-y-3">
                 <div className="flex items-center justify-center gap-2">
@@ -143,6 +203,9 @@ function TrackingContent() {
                     Live GPS Transmitting
                   </span>
                 </div>
+
+                {/* Leaflet Map Integration */}
+                <LiveMap lat={defaultLat} lng={defaultLng} carTitle={carTitle} />
 
                 {currentCoords && (
                   <p className="text-[11px] font-mono text-gray-400">
@@ -165,7 +228,7 @@ function TrackingContent() {
               </button>
             )}
 
-            <p className="text-[11px] file: text-gray-500">
+            <p className="text-[11px] text-gray-500">
               Location updates automatically expire when the rental period closes.
             </p>
           </div>
