@@ -1,9 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, use } from 'react';
 import { supabase } from '@/lib/supabase';
 
-export default function ClientTrackView({ token }: { token: string }) {
+export default function TrackPage({ params }: { params: Promise<{ token: string }> }) {
+  const resolvedParams = use(params);
+  const token = resolvedParams.token;
+
   const [booking, setBooking] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -13,14 +16,17 @@ export default function ClientTrackView({ token }: { token: string }) {
 
   useEffect(() => {
     async function verifyToken() {
-      if (!token) return;
+      if (!token) {
+        setLoading(false);
+        return;
+      }
 
-      // Query by ID or tracking_token to ensure full compatibility
+      // UUID and tracking_token fallback lookup
       const { data, error } = await supabase
         .from('bookings')
         .select('*, cars(brand, name, registration_number)')
         .or(`id.eq.${token},tracking_token.eq.${token}`)
-        .single();
+        .maybeSingle();
 
       if (error || !data) {
         setErrorMsg('Invalid or expired tracking link.');
