@@ -597,6 +597,14 @@ export default function BookingsPage() {
                     <span className="text-green-400 font-bold text-sm">Total: {b.total_price} PKR</span>
                     <div className="flex flex-wrap gap-2 items-center">
                       <a
+                        href={`/track/${b.tracking_token || b.id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs bg-cyan-600 hover:bg-cyan-500 text-white font-semibold px-3 py-1.5 rounded transition-colors flex items-center gap-1 shadow cursor-pointer"
+                      >
+                        📡 Track Live GPS
+                      </a>
+                      <a
                         href={`/bookings/${b.id}/invoice`}
                         className="text-xs bg-gray-700 hover:bg-gray-600 text-gray-200 border border-gray-600 px-3 py-1.5 rounded transition-colors flex items-center gap-1"
                       >
