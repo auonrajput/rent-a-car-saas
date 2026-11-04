@@ -160,11 +160,16 @@ export default function BookingsPage() {
       console.error('Error fetching cars:', allCarsError);
     }
 
-    // Fetch registered drivers/staff for in-house allocation dropdown
-    const { data: driversData } = await supabase
-      .from('tenants')
+    // Fetch registered drivers from profiles table where role is driver
+    const { data: driversData, error: driversError } = await supabase
+      .from('profiles')
       .select('*')
-      .eq('id', user.id);
+      .eq('tenant_id', user.id)
+      .eq('role', 'driver');
+
+    if (driversError) {
+      console.error('Error fetching drivers:', driversError);
+    }
 
     const enrichedBookings = (bookingsData || []).map((b) => {
       const foundCar = allCarsData?.find((c) => c.id === b.car_id);
@@ -454,7 +459,7 @@ export default function BookingsPage() {
                     <option value="">-- Choose Staff Driver --</option>
                     {drivers.map((d) => (
                       <option key={d.id} value={d.id}>
-                        {d.business_name || 'Staff Driver'} ({d.id.slice(0, 6)})
+                        {d.full_name || d.email} ({d.email})
                       </option>
                     ))}
                   </select>
