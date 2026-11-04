@@ -57,6 +57,7 @@ export default function TenantSettingsPage() {
 
     const role = user.user_metadata?.role || 'admin';
     setCurrentUserRole(role);
+    setTenantId(user.id);
 
     // Fetch tenant settings
     const { data, error } = await supabase
@@ -68,7 +69,6 @@ export default function TenantSettingsPage() {
     if (error && error.code !== 'PGRST116') {
       console.error('Error fetching tenant:', error);
     } else if (data) {
-      setTenantId(data.id);
       setFormData({
         name: data.name || '',
         phone: data.phone || '',
@@ -77,13 +77,15 @@ export default function TenantSettingsPage() {
       });
     }
 
-    // Fetch Team Members list
-    const { data: teamData } = await supabase
+    // Fetch Team Members list where tenant_id matches current user
+    const { data: teamData, error: teamError } = await supabase
       .from('profiles')
       .select('*')
       .eq('tenant_id', user.id);
 
-    if (teamData) {
+    if (teamError) {
+      console.error('Error fetching team members:', teamError.message);
+    } else if (teamData) {
       setTeamMembers(teamData);
     }
 
@@ -163,6 +165,9 @@ export default function TenantSettingsPage() {
 
       if (profileError) {
         console.error('Profile log error:', profileError.message);
+        setMemberMessage('Auth created, but profile insert failed: ' + profileError.message);
+        setAddingMember(false);
+        return;
       }
 
       setMemberMessage(`Success! ${memberForm.role.toUpperCase()} account created.`);
@@ -210,7 +215,7 @@ export default function TenantSettingsPage() {
           </div>
         )}
 
-        {/* General Business Settings (Restricted to Admin / Manager) */}
+        {/* General Business Settings */}
         {canManageTeam && (
           <div className="bg-gray-800 border border-gray-700 rounded-2xl p-5 sm:p-8 shadow-xl">
             <h2 className="text-lg font-semibold text-gray-200 mb-4 border-b border-gray-700 pb-2">Agency Details</h2>
@@ -281,7 +286,7 @@ export default function TenantSettingsPage() {
           </div>
         )}
 
-        {/* TEAM MANAGEMENT SECTION (Visible only to Admin / Manager) */}
+        {/* TEAM MANAGEMENT SECTION */}
         {canManageTeam && (
           <div className="bg-gray-800 border border-gray-700 rounded-2xl p-5 sm:p-8 shadow-xl space-y-6">
             <div className="border-b border-gray-700 pb-3">
