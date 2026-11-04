@@ -132,35 +132,33 @@ export default function TenantSettingsPage() {
       return;
     }
 
-    // 2. Ensure tenant record exists first to satisfy foreign key constraint
-    await supabase.from('tenants').upsert({
-      id: tenantId,
-      name: formData.name || 'Royal Rent A Car',
-      currency: formData.currency || 'PKR',
-    });
+    try {
+      // Call secure admin API route to create user in Auth and Profiles simultaneously
+      const response = await fetch('/api/admin/create-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: memberForm.email,
+          password: memberForm.password,
+          full_name: memberForm.fullName,
+          role: memberForm.role,
+          tenant_id: tenantId,
+        }),
+      });
 
-    // 3. Direct insert into profiles table (Bypasses Auth rate limit completely)
-    const newMemberId = crypto.randomUUID();
-    const { error: profileError } = await supabase.from('profiles').insert([
-      {
-        id: newMemberId,
-        tenant_id: tenantId,
-        full_name: memberForm.fullName,
-        email: memberForm.email,
-        role: memberForm.role,
-      },
-    ]);
+      const resData = await response.json();
 
-    if (profileError) {
-      console.error('Profile insert error:', profileError.message);
-      setMemberMessage('Error adding team member: ' + profileError.message);
-      setAddingMember(false);
-      return;
+      if (!response.ok) {
+        setMemberMessage('Error creating member: ' + resData.error);
+      } else {
+        setMemberMessage(`Success! ${memberForm.role.toUpperCase()} account created successfully.`);
+        setMemberForm({ fullName: '', email: '', password: '', role: 'receptionist' });
+        fetchTenantSettingsAndTeam();
+      }
+    } catch (err: any) {
+      setMemberMessage('Network error: ' + err.message);
     }
 
-    setMemberMessage(`Success! ${memberForm.role.toUpperCase()} account added successfully.`);
-    setMemberForm({ fullName: '', email: '', password: '', role: 'receptionist' });
-    fetchTenantSettingsAndTeam();
     setAddingMember(false);
   };
 
