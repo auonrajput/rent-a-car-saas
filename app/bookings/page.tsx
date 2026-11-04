@@ -97,6 +97,7 @@ function TripCountdown({ startTime, endTime }: { startTime: string; endTime: str
 export default function BookingsPage() {
   const [bookings, setBookings] = useState<any[]>([]);
   const [cars, setCars] = useState<any[]>([]);
+  const [drivers, setDrivers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [tenantId, setTenantId] = useState<string | null>(null);
@@ -117,10 +118,13 @@ export default function BookingsPage() {
   });
   const [submittingAgreement, setSubmittingAgreement] = useState(false);
 
+  // Form State with Driver Allocation Options
   const [formData, setFormData] = useState({
     car_id: '',
     customer_name: '',
     customer_phone: '',
+    driver_type: 'self_drive', // 'in_house' or 'self_drive'
+    driver_id: '',
     start_time: '',
     end_time: '',
   });
@@ -156,6 +160,12 @@ export default function BookingsPage() {
       console.error('Error fetching cars:', allCarsError);
     }
 
+    // Fetch registered drivers/staff for in-house allocation dropdown
+    const { data: driversData } = await supabase
+      .from('tenants')
+      .select('*')
+      .eq('id', user.id);
+
     const enrichedBookings = (bookingsData || []).map((b) => {
       const foundCar = allCarsData?.find((c) => c.id === b.car_id);
       return {
@@ -168,6 +178,7 @@ export default function BookingsPage() {
 
     const availableCars = (allCarsData || []).filter((c) => c.status === 'available');
     setCars(availableCars);
+    setDrivers(driversData || []);
 
     setLoading(false);
   }
@@ -180,6 +191,11 @@ export default function BookingsPage() {
     e.preventDefault();
     if (!formData.car_id) {
       alert('Please select an available car');
+      return;
+    }
+
+    if (formData.driver_type === 'in_house' && !formData.driver_id) {
+      alert('Please select an in-house driver for this trip');
       return;
     }
 
@@ -205,17 +221,21 @@ export default function BookingsPage() {
     const diffDays = Math.ceil(diffHours / 24) || 1;
     const totalPrice = diffDays * Number(selectedCar?.daily_rate || 0);
 
+    // Insert with driver allocation and active tracking flags
     const { error: bookingError } = await supabase.from('bookings').insert([
       {
         tenant_id: user.id,
         car_id: formData.car_id,
         customer_name: formData.customer_name,
         customer_phone: formData.customer_phone,
+        driver_type: formData.driver_type,
+        driver_id: formData.driver_type === 'in_house' ? formData.driver_id : null,
         start_date: formData.start_time,
         end_date: formData.end_time,
         total_price: totalPrice,
         status: 'confirmed',
         is_signed: false,
+        is_tracking_active: true,
       },
     ]);
 
@@ -228,6 +248,8 @@ export default function BookingsPage() {
         car_id: '',
         customer_name: '',
         customer_phone: '',
+        driver_type: 'self_drive',
+        driver_id: '',
         start_time: '',
         end_time: '',
       });
@@ -263,7 +285,7 @@ export default function BookingsPage() {
   const handleCompleteTrip = async (bookingId: string, carId: string) => {
     const { error: bookingError } = await supabase
       .from('bookings')
-      .update({ status: 'completed' })
+      .update({ status: 'completed', is_tracking_active: false })
       .eq('id', bookingId);
 
     if (bookingError) {
@@ -348,7 +370,7 @@ export default function BookingsPage() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gray-800 pb-4 gap-4">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-blue-400">Active Fleet Tracking & Agreements</h1>
-            <p className="text-xs sm:text-sm text-gray-400">Manage active rentals with real-time countdown timers</p>
+            <p className="text-xs sm:text-sm text-gray-400">Manage active rentals with real-time countdown timers & driver allocation</p>
           </div>
           <div className="flex gap-3 w-full sm:w-auto justify-end">
             <Link
@@ -363,7 +385,7 @@ export default function BookingsPage() {
         {/* New Booking Form - Visible to Admin, Manager & Receptionist */}
         {canCreateOrManageBooking && (
           <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 sm:p-6 shadow-xl">
-            <h2 className="text-lg sm:text-xl font-semibold mb-4 text-gray-200">Create New Booking</h2>
+            <h2 className="text-lg sm:text-xl font-semibold mb-4 text-gray-200">Create New Booking & Fleet Allocation</h2>
             <form onSubmit={handleBookingSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-xs sm:text-sm font-medium text-gray-400 mb-1">Select Available Car</label>
@@ -406,6 +428,39 @@ export default function BookingsPage() {
                 />
               </div>
 
+              {/* Driver Type Selector */}
+              <div>
+                <label className="block text-xs sm:text-sm font-medium text-gray-400 mb-1">Driver Allocation Type</label>
+                <select
+                  value={formData.driver_type}
+                  onChange={(e) => setFormData({ ...formData, driver_type: e.target.value, driver_id: '' })}
+                  className="w-full bg-gray-900 border border-gray-700 rounded p-2.5 text-white text-sm focus:outline-none focus:border-blue-500 cursor-pointer"
+                >
+                  <option value="self_drive">🚗 Customer Self-Drive (Tracking Link)</option>
+                  <option value="in_house">👨‍✈️ In-House Driver (Staff Account)</option>
+                </select>
+              </div>
+
+              {/* Conditional Staff Driver Dropdown */}
+              {formData.driver_type === 'in_house' && (
+                <div>
+                  <label className="block text-xs sm:text-sm font-medium text-amber-400 mb-1">Select In-House Driver</label>
+                  <select
+                    value={formData.driver_id}
+                    onChange={(e) => setFormData({ ...formData, driver_id: e.target.value })}
+                    required
+                    className="w-full bg-gray-900 border border-amber-600 rounded p-2.5 text-white text-sm focus:outline-none focus:border-amber-500 cursor-pointer"
+                  >
+                    <option value="">-- Choose Staff Driver --</option>
+                    {drivers.map((d) => (
+                      <option key={d.id} value={d.id}>
+                        {d.business_name || 'Staff Driver'} ({d.id.slice(0, 6)})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
               <div>
                 <label className="block text-xs sm:text-sm font-medium text-gray-400 mb-1">Start Date & Time</label>
                 <input
@@ -428,13 +483,13 @@ export default function BookingsPage() {
                 />
               </div>
 
-              <div className="flex items-end">
+              <div className="flex items-end md:col-span-3">
                 <button
                   type="submit"
                   disabled={submitting}
                   className="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium p-2.5 rounded transition-colors disabled:opacity-50 cursor-pointer shadow text-sm"
                 >
-                  {submitting ? 'Confirming...' : 'Confirm Booking'}
+                  {submitting ? 'Confirming...' : 'Confirm Booking & Enable Tracking'}
                 </button>
               </div>
             </form>
@@ -462,8 +517,12 @@ export default function BookingsPage() {
                       <p className="text-xs sm:text-sm text-gray-400">Customer: <span className="text-white font-medium">{b.customer_name}</span> ({b.customer_phone})</p>
                     </div>
                     <div className="flex flex-col items-end gap-1 shrink-0">
-                      <span className="bg-blue-900/60 text-blue-300 border border-blue-700 px-2 py-0.5 text-[10px] sm:text-xs rounded uppercase font-medium">
-                        On Trip
+                      <span className={`px-2 py-0.5 text-[10px] rounded uppercase font-bold border ${
+                        b.driver_type === 'in_house' 
+                          ? 'bg-purple-950 text-purple-300 border-purple-700' 
+                          : 'bg-emerald-950 text-emerald-300 border-emerald-700'
+                      }`}>
+                        {b.driver_type === 'in_house' ? '👨‍✈️ In-House Driver' : '🚗 Self-Drive Link'}
                       </span>
                       {b.is_signed ? (
                         <span className="bg-green-900/60 text-green-300 border border-green-700 px-2 py-0.5 text-[10px] sm:text-xs rounded font-bold">
@@ -543,7 +602,7 @@ export default function BookingsPage() {
                           onClick={() => handleCompleteTrip(b.id, b.car_id)}
                           className="text-xs bg-green-600 hover:bg-green-500 text-white px-3 py-1.5 rounded font-medium transition-colors cursor-pointer shadow"
                         >
-                          ✅ Complete Trip & Return Car
+                          ✅ Complete Trip & Stop Tracking
                         </button>
                       )}
                     </div>
