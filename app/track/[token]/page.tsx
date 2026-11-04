@@ -3,45 +3,51 @@
 import { Suspense, useEffect, useState, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
 
-// Fix Leaflet default marker icon issue in Next.js
-if (typeof window !== 'undefined') {
-  delete (L.Icon.Default.prototype as any)._getIconUrl;
-  L.Icon.Default.mergeOptions({
-    iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-    iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-    shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-  });
-}
-
-// Interactive Leaflet Map Component
+// Interactive Leaflet Map Component loaded dynamically on client side only
 function LiveMap({ lat, lng, carTitle }: { lat: number; lng: number; carTitle: string }) {
   const mapRef = useRef<HTMLDivElement>(null);
-  const mapInstanceRef = useRef<L.Map | null>(null);
-  const markerRef = useRef<L.Marker | null>(null);
+  const mapInstanceRef = useRef<any>(null);
+  const markerRef = useRef<any>(null);
 
   useEffect(() => {
-    if (!mapRef.current) return;
+    let isMounted = true;
 
-    if (!mapInstanceRef.current) {
-      const map = L.map(mapRef.current).setView([lat, lng], 15);
-      
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '&copy; OpenStreetMap contributors'
-      }).addTo(map);
+    async function initMap() {
+      const L = (await import('leaflet')).default;
+      await import('leaflet/dist/leaflet.css');
 
-      const marker = L.marker([lat, lng]).addTo(map)
-        .bindPopup(`<b>${carTitle}</b><br />Live Location`)
-        .openPopup();
+      // Fix Leaflet default marker icon issue
+      delete (L.Icon.Default.prototype as any)._getIconUrl;
+      L.Icon.Default.mergeOptions({
+        iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+        iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+        shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+      });
 
-      mapInstanceRef.current = map;
-      markerRef.current = marker;
+      if (!mapRef.current || !isMounted) return;
+
+      if (!mapInstanceRef.current) {
+        const map = L.map(mapRef.current).setView([lat, lng], 15);
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 19,
+          attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        const marker = L.marker([lat, lng]).addTo(map)
+          .bindPopup(`<b>${carTitle}</b><br />Live Location`)
+          .openPopup();
+
+        mapInstanceRef.current = map;
+        markerRef.current = marker;
+      }
     }
 
+    initMap();
+
     return () => {
+      isMounted = false;
       if (mapInstanceRef.current) {
         mapInstanceRef.current.remove();
         mapInstanceRef.current = null;
