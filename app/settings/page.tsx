@@ -132,6 +132,13 @@ export default function TenantSettingsPage() {
       return;
     }
 
+    // 0. Ensure tenant record exists first to satisfy foreign key constraint
+    await supabase.from('tenants').upsert({
+      id: tenantId,
+      name: formData.name || 'Royal Rent A Car',
+      currency: formData.currency || 'PKR',
+    });
+
     // 2. Create user in Supabase Auth
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: memberForm.email,
