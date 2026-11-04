@@ -1,10 +1,11 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 
-export default function TrackPage() {
+function TrackingContent() {
   const params = useParams();
   const token = params?.token as string;
 
@@ -164,12 +165,27 @@ export default function TrackPage() {
               </button>
             )}
 
-            <p className="text-[11px] text-gray-500">
+            <p className="text-[11px] file: text-gray-500">
               Location updates automatically expire when the rental period closes.
             </p>
           </div>
         )}
       </div>
     </div>
+  );
+}
+
+export default function TrackPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-950 text-white flex flex-col items-center justify-center p-4">
+        <div className="max-w-md w-full bg-gray-900 border border-gray-800 rounded-2xl p-6 shadow-2xl text-center">
+          <h1 className="text-xl font-bold text-amber-400 mb-2">ROYAL RENT A CAR</h1>
+          <p className="text-sm text-gray-400 animate-pulse">Loading tracking console...</p>
+        </div>
+      </div>
+    }>
+      <TrackingContent />
+    </Suspense>
   );
 }
