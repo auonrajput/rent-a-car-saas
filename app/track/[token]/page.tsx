@@ -15,10 +15,11 @@ export default function ClientTrackView({ token }: { token: string }) {
     async function verifyToken() {
       if (!token) return;
 
+      // Query by ID or tracking_token to ensure full compatibility
       const { data, error } = await supabase
         .from('bookings')
         .select('*, cars(brand, name, registration_number)')
-        .eq('tracking_token', token)
+        .or(`id.eq.${token},tracking_token.eq.${token}`)
         .single();
 
       if (error || !data) {
@@ -42,6 +43,7 @@ export default function ClientTrackView({ token }: { token: string }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           tracking_token: token,
+          booking_id: booking?.id || token,
           latitude,
           longitude,
           speed: speed || 0,
