@@ -13,12 +13,12 @@ export async function POST(request: Request) {
       );
     }
 
-    // 1. Fetch active booking associated with this tracking token
+    // 1. Fetch active booking by matching either id or tracking_token
     const { data: booking, error: fetchError } = await supabase
       .from('bookings')
       .select('id, status, is_tracking_active')
-      .eq('tracking_token', tracking_token)
-      .single();
+      .or(`id.eq.${tracking_token},tracking_token.eq.${tracking_token}`)
+      .maybeSingle();
 
     if (fetchError || !booking) {
       return NextResponse.json(
